@@ -451,3 +451,161 @@ body.theme-ultron .plan-badge {
   animation: pulseTimer 1s infinite;
   color: #FF6600 !important;
 }
+/* Botones de administración */
+.admin-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.add-fab {
+  background: #00C853;
+  color: white;
+  bottom: 100px;
+}
+
+.edit-fab {
+  background: #FF9800;
+  color: white;
+  bottom: 170px;
+}
+
+.add-fab:hover, .edit-fab:hover {
+  transform: scale(1.1);
+}
+
+.admin-fab .fab-tooltip {
+  position: absolute;
+  right: 55px;
+  background: var(--card-bg);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s;
+  pointer-events: none;
+  border: 1px solid var(--border);
+}
+
+.admin-fab:hover .fab-tooltip {
+  opacity: 1;
+  visibility: visible;
+  right: 60px;
+}
+
+/* Modal para agregar/editar subasta */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-container {
+  background: var(--card-bg);
+  border-radius: 30px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s;
+}
+
+.modal-overlay.active .modal-container {
+  transform: scale(1);
+}
+
+.modal-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modal-container input,
+.modal-container select {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-save { background: #00C853; color: white; }
+.btn-cancel { background: #E63946; color: white; }
+.btn-delete { background: #FF9800; color: white; }
+
+/* Selección de subasta a editar */
+.select-auction-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 15px 0;
+}
+
+.auction-select-item {
+  padding: 12px;
+  margin: 5px 0;
+  background: var(--bg);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid transparent;
+}
+
+.auction-select-item:hover {
+  border-color: var(--accent);
+  transform: translateX(5px);
+}
+
+.auction-select-item.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
