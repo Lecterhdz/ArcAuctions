@@ -1,17 +1,20 @@
 import { db } from './firebase-config.js';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, onSnapshot, orderBy, limit, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, query, addDoc, updateDoc, doc, onSnapshot, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Variable para almacenar timers
+const timers = {};
 
 export async function loadAuctions(user) {
   const container = document.getElementById('auctions-container');
   if (!container) return;
   
-  container.innerHTML = '<div class="card-rectangular">🔄 Cargando subastas...</div>';
+  container.innerHTML = '<div class="skeleton">🔄 Cargando subastas...</div>';
   
-  const q = query(collection(db, "auctions"), orderBy("endTime", "asc"), limit(10));
+  const q = query(collection(db, "auctions"), orderBy("endTime", "asc"), limit(20));
   
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
-      container.innerHTML = '<div class="card-rectangular">📭 No hay subastas activas. Vuelve pronto!</div>';
+      container.innerHTML = '<div class="card-rectangular">📭 No hay subastas activas</div>';
       return;
     }
     
@@ -20,45 +23,121 @@ export async function loadAuctions(user) {
       const auction = { id: docSnap.id, ...docSnap.data() };
       container.appendChild(createAuctionCard(auction, user));
     });
-  }, (error) => {
-    console.error("Error loading auctions:", error);
-    container.innerHTML = '<div class="card-rectangular" style="border-left-color: red;">❌ Error cargando subastas. ¿Firestore configurado?</div>';
   });
 }
 
 function createAuctionCard(auction, user) {
   const card = document.createElement('div');
-  card.className = 'card-rectangular';
-  card.style.position = 'relative';
+  card.className = 'card-rectangular auction-card';
+  card.id = `auction-${auction.id}`;
   
-  // Verificar si la subasta expiró
   const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
   const isExpired = endTime < new Date();
   
   card.innerHTML = `
-    <h3>${auction.title || 'Subasta'}</h3>
-    <p style="font-size: 24px; font-weight: bold;">💰 $${auction.currentPrice || 0}</p>
-    <p>⏳ Termina: ${endTime.toLocaleString()}</p>
-    <p>🏷️ Vendedor: ${auction.seller || 'Stark Industries'}</p>
-    ${isExpired ? '<p style="color: #E63946;">🔴 SUBASTA FINALIZADA</p>' : ''}
-    <button class="btn-rounded" id="bid-${auction.id}" ${isExpired ? 'disabled' : ''}>
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+      <h3 style="margin: 0; font-size: 18px;">${auction.title || 'Subasta ARC'}</h3>
+      <span class="seller-badge">🏷️ ${auction.seller || 'Stark'}</span>
+    </div>
+    <div class="auction-price" style="font-size: 28px; font-weight: 800; margin: 10px 0;">
+      $${auction.currentPrice || 0}
+    </div>
+    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+      <span>⏳ <span id="timer-${auction.id}" class="auction-timer">--:--:--</span></span>
+      <span>📊 ${auction.bidsCount || 0} pujas</span>
+    </div>
+    <div id="last-bidder-${auction.id}" style="font-size: 12px; opacity: 0.7; margin-bottom: 10px;">
+      ${auction.lastBidder ? `Última puja: ${auction.lastBidder.split('@')[0]}` : 'Sin pujas aún'}
+    </div>
+    <button class="btn-rounded bid-button" id="bid-${auction.id}" ${isExpired ? 'disabled' : ''}>
       ⚡ Pujar +$10
     </button>
   `;
   
+  // Iniciar timer SOLO si no ha expirado
   if (!isExpired) {
-    setTimeout(() => {
-      const btn = document.getElementById(`bid-${auction.id}`);
-      if (btn) btn.onclick = () => window.placeBid && window.placeBid(auction.id, auction.currentPrice);
-    }, 0);
+    startTimer(auction.id, endTime);
+  } else {
+    const timerSpan = document.getElementById(`timer-${auction.id}`);
+    if (timerSpan) {
+      timerSpan.innerHTML = '🔴 FINALIZADA';
+      timerSpan.style.color = '#E63946';
+    }
   }
+  
+  // Configurar botón de puja
+  setTimeout(() => {
+    const btn = document.getElementById(`bid-${auction.id}`);
+    if (btn && !isExpired) {
+      btn.onclick = () => {
+        window.placeBid(auction.id, auction.currentPrice);
+      };
+    }
+  }, 0);
   
   return card;
 }
 
+function startTimer(auctionId, endTime) {
+  if (timers[auctionId]) clearInterval(timers[auctionId]);
+  
+  function updateTimer() {
+    const now = new Date();
+    const diff = endTime - now;
+    
+    const timerSpan = document.getElementById(`timer-${auctionId}`);
+    if (!timerSpan) return;
+    
+    if (diff <= 0) {
+      timerSpan.innerHTML = '🔴 FINALIZADA';
+      timerSpan.style.color = '#E63946';
+      timerSpan.style.fontWeight = 'bold';
+      
+      const btn = document.getElementById(`bid-${auctionId}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.innerHTML = '⛔ Subasta finalizada';
+      }
+      
+      if (timers[auctionId]) clearInterval(timers[auctionId]);
+      return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (3600000)) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    timerSpan.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (diff < 3600000) {
+      timerSpan.style.color = '#FF6600';
+      timerSpan.style.fontWeight = 'bold';
+    }
+  }
+  
+  updateTimer();
+  timers[auctionId] = setInterval(updateTimer, 1000);
+}
+
 export async function placeBid(user, auctionId, currentPrice) {
   try {
-    // Verificar límite DEMO
+    const auctionRef = doc(db, "auctions", auctionId);
+    const auctionSnap = await getDoc(auctionRef);
+    
+    if (!auctionSnap.exists()) {
+      showToast('❌ Subasta no encontrada', 'error');
+      return false;
+    }
+    
+    const auction = auctionSnap.data();
+    const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+    
+    if (endTime < new Date()) {
+      showToast('🔴 Esta subasta ya finalizó', 'error');
+      return false;
+    }
+    
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data() || { plan: 'demo', bidsToday: 0 };
@@ -66,21 +145,20 @@ export async function placeBid(user, auctionId, currentPrice) {
     let bidsToday = userData.bidsToday || 0;
     
     if (plan === 'demo' && bidsToday >= 3) {
-      alert("⚠️ Límite DEMO alcanzado (3 pujas). ¡Actualiza a PRO para pujar más!");
-      return;
+      showToast('⚠️ Límite DEMO alcanzado (3 pujas)', 'warning');
+      return false;
     }
     
-    const newPrice = currentPrice + 10;
-    const auctionRef = doc(db, "auctions", auctionId);
+    const newPrice = (auction.currentPrice || currentPrice) + 10;
+    const newBidsCount = (auction.bidsCount || 0) + 1;
     
-    // Actualizar subasta
     await updateDoc(auctionRef, {
       currentPrice: newPrice,
       lastBidder: user.email,
-      lastBidTime: new Date()
+      lastBidTime: new Date(),
+      bidsCount: newBidsCount
     });
     
-    // Registrar puja
     await addDoc(collection(db, "bids"), {
       auctionId: auctionId,
       userId: user.uid,
@@ -89,22 +167,36 @@ export async function placeBid(user, auctionId, currentPrice) {
       timestamp: new Date()
     });
     
-    // Actualizar contador DEMO
     if (plan === 'demo') {
       await updateDoc(userRef, { bidsToday: bidsToday + 1 });
     }
     
-    // Feedback visual
+    showToast(`⚡ ¡Puja de $${newPrice} realizada!`, 'success');
+    
     const btn = document.getElementById(`bid-${auctionId}`);
     if (btn) {
-      btn.textContent = '✅ ¡Puja realizada!';
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '✅ ¡Puja enviada!';
+      btn.disabled = true;
       setTimeout(() => {
-        btn.textContent = '⚡ Pujar +$10';
-      }, 1500);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, 2000);
     }
+    
+    return true;
     
   } catch (error) {
     console.error("Error placing bid:", error);
-    alert("❌ Error al realizar la puja. Intenta de nuevo.");
+    showToast('❌ Error al realizar la puja', 'error');
+    return false;
   }
+}
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
