@@ -18,7 +18,6 @@
     <button class="menu-item" data-view="auctions">📡 Subastas Activas</button>
     <button class="menu-item" data-view="profile">👤 Mi Perfil</button>
     <button class="menu-item" data-view="history">📜 Historial</button>
-    <button class="menu-item" id="theme-switch-dash">🌓 Modo Jarvis/Ultron</button>
     <button class="menu-item logout" id="logout-btn">🔒 Cerrar Sesión</button>
   </nav>
 
@@ -73,15 +72,34 @@
       const sideMenu = document.getElementById('side-menu');
       menuBtn.onclick = () => sideMenu.classList.toggle('open');
       
-      // Toggle tema
-      const themeBtn = document.getElementById('theme-switch-dash');
-      themeBtn.onclick = () => {
-        const current = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
-        document.body.setAttribute('data-theme', current);
-        localStorage.setItem('theme', current);
-        setTheme(current);
-      };
-      
+      // Tema
+      // AGREGA este código para el botón FAB:
+      const themeFab = document.getElementById('theme-fab');
+      if (themeFab) {
+        themeFab.onclick = () => {
+          const current = document.body.getAttribute('data-theme') || 'jarvis';
+          const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
+          document.body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          console.log('🎨 Tema cambiado a:', newTheme);
+          
+          // Feedback visual
+          themeFab.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            themeFab.style.transform = 'scale(1)';
+          }, 200);
+        };
+      }
+      // En index.html, dentro del script
+      const themeFab = document.getElementById('theme-fab');
+      if (themeFab) {
+        themeFab.onclick = () => {
+          const current = document.body.getAttribute('data-theme') || 'jarvis';
+          const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
+          document.body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+        };
+      }      
       // Navegación
       document.querySelectorAll('.menu-item[data-view]').forEach(btn => {
         btn.onclick = (e) => {
