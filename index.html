@@ -9,74 +9,396 @@
   <link rel="manifest" href="/ArcAuctions/manifest.json">
   <link rel="stylesheet" href="/ArcAuctions/css/styles.css">
   
-  <!-- Fuente profesional -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    /* Estilos adicionales específicos para index */
-    .login-container {
-      animation: fadeInUp 0.6s ease-out;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .reactor-ring {
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.3s ease;
     }
     
-    body.theme-jarvis .reactor-ring {
-      box-shadow: 0 0 60px rgba(0, 87, 179, 0.3);
+    /* Login container más compacto */
+    .login-container {
+      max-width: 420px;
+      width: 90%;
+      margin: 40px auto;
+      text-align: center;
+      padding: 40px 30px;
+      background: var(--card-bg);
+      border-radius: 40px;
+      box-shadow: 0 0 40px var(--shadow);
+      position: relative;
+      z-index: 10;
     }
     
-    body.theme-ultron .reactor-ring {
-      box-shadow: 0 0 60px rgba(229, 57, 70, 0.3);
+    /* Logo y reactor ARC (visible) */
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
     }
     
-    .login-container input:focus {
+    .arc-reactor-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 15px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .reactor-core {
+      width: 25px;
+      height: 25px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 20px var(--accent-glow);
+      animation: pulseCore 2s ease-in-out infinite;
+      z-index: 2;
+    }
+    
+    .reactor-ring-inner {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      animation: rotateRing 3s linear infinite;
+    }
+    
+    @keyframes rotateRing {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulseCore {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    
+    /* Título */
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    
+    /* Subtítulo más compacto */
+    .subtitle {
+      font-size: 14px;
+      font-weight: 500;
+      margin: 8px 0;
+    }
+    
+    .jarvis-text, .ultron-text {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    body.theme-jarvis .jarvis-text {
+      color: #0057B3;
+    }
+    
+    body.theme-ultron .ultron-text {
+      color: #E63946;
+    }
+    
+    .separator {
+      margin: 0 6px;
+      opacity: 0.5;
+      font-size: 12px;
+    }
+    
+    .subtitle-small {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 5px;
+    }
+    
+    /* Efecto glitch SOLO en modo Ultron (visible) */
+    body.theme-ultron .glitch-text {
+      animation: glitch 3s infinite;
+    }
+    
+    @keyframes glitch {
+      0%, 100% { transform: skew(0deg, 0deg); }
+      96% { transform: skew(3deg, 1deg); opacity: 0.9; }
+      97% { transform: skew(-2deg, -1deg); }
+      98% { transform: skew(2deg, 2deg); }
+      99% { transform: skew(-1deg, -2deg); }
+    }
+    
+    /* Inputs flotantes modernos */
+    .input-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+    
+    .input-group label {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      transition: all 0.2s ease;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 40px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    
+    .input-group input:focus {
       outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    
+    .input-group.focused label,
+    .input-group input:focus + label,
+    .input-group input:not(:placeholder-shown) + label {
+      top: 0;
+      transform: translateY(-50%) scale(0.85);
+      background: var(--card-bg);
+      padding: 0 8px;
+      left: 15px;
+      opacity: 1;
+    }
+    
+    /* Botones */
+    .btn-rounded {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-rounded:hover {
       transform: scale(1.02);
+      filter: brightness(1.1);
     }
     
-    .btn-rounded, .btn-outline {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--text);
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
     
-    .btn-rounded:active, .btn-outline:active {
-      transform: scale(0.96);
+    .btn-outline:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    
+    .demo-badge {
+      font-size: 9px;
+      background: var(--accent);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 20px;
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+      opacity: 0.3;
+    }
+    
+    .divider span {
+      margin: 0 12px;
+      font-size: 11px;
+      opacity: 0.5;
+    }
+    
+    /* Info card compacta */
+    .info-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 10px;
+      margin-top: 20px;
+      text-align: center;
+      border-left: 3px solid var(--accent);
+      font-size: 12px;
+    }
+    
+    .version-tag {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+      font-size: 9px;
+      opacity: 0.4;
+    }
+    
+    /* Partículas visibles */
+    .particles-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      animation: floatParticle linear infinite;
+    }
+    
+    body.theme-jarvis .particle {
+      background: #0057B3;
+    }
+    
+    body.theme-ultron .particle {
+      background: #E63946;
+    }
+    
+    @keyframes floatParticle {
+      0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(20px);
+        opacity: 0;
+      }
+    }
+    
+    /* Botón tema con tooltip */
+    .theme-fab {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .fab-tooltip {
+      position: absolute;
+      right: 55px;
+      background: var(--card-bg);
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+      pointer-events: none;
+      border: 1px solid var(--border);
+    }
+    
+    .theme-fab:hover .fab-tooltip {
+      opacity: 1;
+      visibility: visible;
+      right: 60px;
+    }
+    
+    .fab-ripple {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      animation: ripple 0.4s ease-out;
+      pointer-events: none;
+    }
+    
+    @keyframes ripple {
+      from { transform: scale(0.5); opacity: 0.8; }
+      to { transform: scale(2); opacity: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- Efecto de partículas de fondo sutiles -->
-  <div class="particles-bg"></div>
+  <div class="particles-bg" id="particles-container"></div>
   
   <div class="login-container">
-    <div class="reactor-ring"></div>
-    
-    <!-- Logo animado -->
+    <!-- Logo con reactor ARC visible -->
     <div class="logo-container">
       <div class="arc-reactor-icon">
         <div class="reactor-core"></div>
         <div class="reactor-ring-inner"></div>
       </div>
-      <h1 class="glitch-text" data-text="ARCAUCTIONS">⚡ ARCAUCTIONS</h1>
+      <h1 class="glitch-text">⚡ ARCAUCTIONS</h1>
     </div>
     
-    <p class="subtitle" id="subtitle-text">
-      <span class="jarvis-text">J.A.R.V.I.S.</span> 
-      <span class="separator">⟡</span> 
+    <p class="subtitle">
+      <span class="jarvis-text">J.A.R.V.I.S.</span>
+      <span class="separator">⟡</span>
       <span class="ultron-text">U.L.T.R.O.N.</span>
     </p>
-    <p class="subtitle-small">Powered by Stark Industries • ARC Reactor Technology</p>
+    <p class="subtitle-small">Powered by Stark Industries</p>
     
     <form id="login-form">
       <div class="input-group">
@@ -90,8 +412,7 @@
       </div>
       
       <button type="submit" class="btn-rounded">
-        <span class="btn-text">ACCEDER AL ARC</span>
-        <span class="btn-icon">⚡</span>
+        ACCEDER AL ARC ⚡
       </button>
     </form>
     
@@ -100,28 +421,23 @@
     </div>
     
     <button id="demo-btn" class="btn-outline">
-      <span class="demo-icon">🎮</span>
-      <span>MODO DEMO</span>
+      🎮 MODO DEMO
       <span class="demo-badge">3 pujas/hora</span>
     </button>
     
     <div class="info-card">
-      <p class="hint">
-        <span class="hint-icon">🔐</span>
-        Demo: demo@arcauctions.com / 123456
-      </p>
+      demo@arcauctions.com / 123456
     </div>
     
     <div class="version-tag">
       <span>v2.1</span>
       <span>•</span>
-      <span>ARC Reactor Core</span>
+      <span>ARC Reactor</span>
     </div>
   </div>
 
-  <!-- Botón circular flotante para cambiar tema con tooltip mejorado -->
-  <button id="theme-fab" class="theme-fab" title="Cambiar entre JARVIS y ULTRON">
-    <span class="fab-icon">🌓</span>
+  <button id="theme-fab" class="theme-fab">
+    🌓
     <span class="fab-tooltip">JARVIS / ULTRON</span>
   </button>
 
@@ -129,383 +445,58 @@
     import { initAuth } from '/ArcAuctions/js/auth.js';
     import { initTheme, toggleTheme, getCurrentTheme } from '/ArcAuctions/js/theme.js';
     
-    // Inicializar tema guardado (usa el sistema de clases actualizado)
     initTheme();
     
-    // Actualizar texto del subtítulo según el tema
-    function updateSubtitleTheme() {
-      const subtitle = document.getElementById('subtitle-text');
-      if (subtitle) {
-        const currentTheme = getCurrentTheme();
-        if (currentTheme === 'ultron') {
-          subtitle.style.opacity = '1';
-        } else {
-          subtitle.style.opacity = '1';
-        }
+    // Crear partículas visibles
+    function createParticles() {
+      const container = document.getElementById('particles-container');
+      if (!container) return;
+      container.innerHTML = '';
+      for (let i = 0; i回道<50; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 10 + 's';
+        particle.style.animationDuration = 5 + Math.random() * 15 + 's';
+        container.appendChild(particle);
       }
     }
     
-    // Botón de tema con feedback mejorado
+    createParticles();
+    
     const themeFab = document.getElementById('theme-fab');
     if (themeFab) {
       themeFab.onclick = (e) => {
         e.preventDefault();
-        const newTheme = toggleTheme();
+        toggleTheme();
         
-        // Feedback visual avanzado
-        themeFab.style.transform = 'scale(1.3)';
-        themeFab.style.transition = 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        
-        // Añadir efecto de onda
+        themeFab.style.transform = 'scale(1.2)';
         const ripple = document.createElement('span');
         ripple.classList.add('fab-ripple');
         themeFab.appendChild(ripple);
-        
         setTimeout(() => {
           themeFab.style.transform = 'scale(1)';
           ripple.remove();
         }, 300);
         
-        // Actualizar subtítulo
-        updateSubtitleTheme();
-        
-        // Cambiar color del theme-color meta tag
         const metaTheme = document.querySelector('meta[name="theme-color"]');
         if (metaTheme) {
+          const newTheme = getCurrentTheme();
           metaTheme.setAttribute('content', newTheme === 'jarvis' ? '#0057B3' : '#E63946');
         }
       };
     }
     
-    // Animación de entrada para los inputs
     const inputs = document.querySelectorAll('.input-group input');
     inputs.forEach(input => {
-      input.addEventListener('focus', () => {
-        input.parentElement.classList.add('focused');
-      });
+      input.addEventListener('focus', () => input.parentElement.classList.add('focused'));
       input.addEventListener('blur', () => {
-        if (!input.value) {
-          input.parentElement.classList.remove('focused');
-        }
+        if (!input.value) input.parentElement.classList.remove('focused');
       });
-      if (input.value) {
-        input.parentElement.classList.add('focused');
-      }
+      if (input.value) input.parentElement.classList.add('focused');
     });
     
-    // Inicializar autenticación
     initAuth();
-    updateSubtitleTheme();
-    
-    // Efecto de partículas sutiles según el tema
-    function createParticles() {
-      const particlesContainer = document.querySelector('.particles-bg');
-      if (!particlesContainer) return;
-      
-      for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('particle');
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.top = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 10 + 's';
-        particle.style.animationDuration = 5 + Math.random() * 10 + 's';
-        particlesContainer.appendChild(particle);
-      }
-    }
-    
-    // Aplicar estilos de partículas dinámicamente
-    const style = document.createElement('style');
-    style.textContent = `
-      .particles-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: -2;
-        overflow: hidden;
-      }
-      
-      .particle {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: currentColor;
-        opacity: 0.3;
-        border-radius: 50%;
-        animation: floatParticle linear infinite;
-      }
-      
-      @keyframes floatParticle {
-        0% {
-          transform: translateY(0) translateX(0);
-          opacity: 0;
-        }
-        10% {
-          opacity: 0.5;
-        }
-        90% {
-          opacity: 0.5;
-        }
-        100% {
-          transform: translateY(-100vh) translateX(20px);
-          opacity: 0;
-        }
-      }
-      
-      body.theme-jarvis .particle {
-        background: #0057B3;
-      }
-      
-      body.theme-ultron .particle {
-        background: #E63946;
-      }
-      
-      .logo-container {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      
-      .arc-reactor-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 15px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .reactor-core {
-        width: 30px;
-        height: 30px;
-        background: var(--accent);
-        border-radius: 50%;
-        box-shadow: 0 0 20px var(--accent-glow);
-        animation: pulseCore 2s ease-in-out infinite;
-        z-index: 2;
-      }
-      
-      .reactor-ring-inner {
-        position: absolute;
-        width: 60px;
-        height: 60px;
-        border: 2px solid var(--accent);
-        border-radius: 50%;
-        animation: rotateRing 3s linear infinite;
-      }
-      
-      @keyframes rotateRing {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      
-      @keyframes pulseCore {
-        0%, 100% { opacity: 0.7; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.1); }
-      }
-      
-      .glitch-text {
-        font-size: 32px;
-        font-weight: 800;
-        letter-spacing: 3px;
-        position: relative;
-        animation: none;
-      }
-      
-      body.theme-ultron .glitch-text {
-        animation: glitch 3s infinite;
-      }
-      
-      @keyframes glitch {
-        0%, 100% { transform: skew(0deg, 0deg); opacity: 1; }
-        95% { transform: skew(0deg, 0deg); opacity: 1; }
-        96% { transform: skew(5deg, 2deg); opacity: 0.8; }
-        97% { transform: skew(-3deg, -1deg); opacity: 0.9; }
-        98% { transform: skew(2deg, 3deg); opacity: 0.85; }
-        99% { transform: skew(-2deg, -2deg); opacity: 0.95; }
-      }
-      
-      .subtitle-small {
-        font-size: 11px;
-        opacity: 0.6;
-        letter-spacing: 1px;
-        margin-top: -5px;
-      }
-      
-      .jarvis-text {
-        font-weight: 600;
-      }
-      
-      .ultron-text {
-        font-weight: 600;
-      }
-      
-      body.theme-jarvis .jarvis-text {
-        color: #0057B3;
-        text-shadow: 0 0 5px rgba(0,87,179,0.5);
-      }
-      
-      body.theme-ultron .ultron-text {
-        color: #E63946;
-        text-shadow: 0 0 5px rgba(229,57,70,0.5);
-      }
-      
-      .separator {
-        margin: 0 10px;
-        opacity: 0.5;
-      }
-      
-      .input-group {
-        position: relative;
-        margin-bottom: 25px;
-      }
-      
-      .input-group label {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 14px;
-        transition: all 0.2s ease;
-        pointer-events: none;
-        opacity: 0.6;
-      }
-      
-      .input-group input {
-        width: 100%;
-        padding: 14px 20px;
-        border-radius: 40px;
-        border: 1px solid var(--border);
-        background: var(--input-bg);
-        color: var(--text);
-        font-size: 14px;
-        transition: all 0.2s ease;
-      }
-      
-      .input-group input:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 10px var(--accent-glow);
-      }
-      
-      .input-group.focused label,
-      .input-group input:focus + label,
-      .input-group input:not(:placeholder-shown) + label {
-        top: 0;
-        transform: translateY(-50%) scale(0.85);
-        background: var(--card-bg);
-        padding: 0 8px;
-        left: 15px;
-        opacity: 1;
-      }
-      
-      .btn-text {
-        margin-right: 8px;
-      }
-      
-      .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        margin: 20px 0;
-      }
-      
-      .divider::before,
-      .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid var(--border);
-        opacity: 0.3;
-      }
-      
-      .divider span {
-        margin: 0 15px;
-        font-size: 12px;
-        opacity: 0.6;
-      }
-      
-      .demo-badge {
-        font-size: 10px;
-        background: var(--accent);
-        color: white;
-        padding: 2px 8px;
-        border-radius: 20px;
-        margin-left: 8px;
-      }
-      
-      body.theme-ultron .demo-badge {
-        background: #8B0000;
-      }
-      
-      .info-card {
-        background: var(--card-bg);
-        border-radius: 15px;
-        padding: 12px;
-        margin-top: 20px;
-        text-align: center;
-        border-left: 3px solid var(--border);
-      }
-      
-      .hint-icon {
-        margin-right: 8px;
-      }
-      
-      .version-tag {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 25px;
-        font-size: 10px;
-        opacity: 0.4;
-      }
-      
-      .fab-tooltip {
-        position: absolute;
-        right: 55px;
-        background: var(--card-bg);
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease;
-        pointer-events: none;
-        border: 1px solid var(--border);
-      }
-      
-      .theme-fab:hover .fab-tooltip {
-        opacity: 1;
-        visibility: visible;
-        right: 65px;
-      }
-      
-      .fab-ripple {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-        animation: ripple 0.4s ease-out;
-        pointer-events: none;
-      }
-      
-      @keyframes ripple {
-        from {
-          transform: scale(0.5);
-          opacity: 0.8;
-        }
-        to {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Crear partículas
-    createParticles();
   </script>
 </body>
 </html>
