@@ -597,6 +597,30 @@
       document.getElementById('user-display').textContent = user.email.split('@')[0];
       document.getElementById('user-email').textContent = user.email;
       
+      // Mostrar fecha de expiración de licencia
+      try {
+        const license = await getUserLicense(user);
+        if (license && license.expiry) {
+          const expiryElem = document.getElementById('license-expiry');
+          if (expiryElem) expiryElem.textContent = license.expiry.toLocaleDateString();
+        }
+      } catch (err) {
+        console.error("Error loading license:", err);
+      }
+      
+      // Verificar si puede crear subastas (admin)
+      try {
+        const canCreate = await canCreateAuctions(user);
+        if (!canCreate) {
+          const addFab = document.getElementById('add-auction-fab');
+          const editFab = document.getElementById('edit-auction-fab');
+          if (addFab) addFab.style.display = 'none';
+          if (editFab) editFab.style.display = 'none';
+        }
+      } catch (err) {
+        console.error("Error checking permissions:", err);
+      }
+      
       const menuBtn = document.getElementById('menu-btn');
       const sideMenu = document.getElementById('side-menu');
       menuBtn.onclick = () => sideMenu.classList.toggle('open');
@@ -622,17 +646,7 @@
         await loadUserProfile(user);
       };
     }
-    // Mostrar fecha de expiración
-    const license = await getUserLicense(user);
-    if (license && license.expiry) {
-      document.getElementById('license-expiry').textContent = license.expiry.toLocaleDateString();
-    } 
-    // Verificar si puede crear subastas (admin)
-    const canCreate = await canCreateAuctions(user);
-    if (!canCreate) {
-      document.getElementById('add-auction-fab').style.display = 'none';
-      document.getElementById('edit-auction-fab').style.display = 'none';
-    }
+    
     init();
   </script>
 </body>
