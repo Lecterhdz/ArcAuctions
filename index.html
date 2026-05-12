@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ArcAuctions | Powered by Arc Reactor</title>
-  <meta name="description" content="Plataforma de subastas inteligente estilo Iron Man - Jarvis/Ultron">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="/ArcAuctions/manifest.json">
   <meta name="theme-color" content="#0057B3">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="/ArcAuctions/css/styles.css">
 </head>
 <body data-theme="jarvis">
   <div class="login-container">
@@ -15,10 +14,6 @@
     <h1>⚡ ARCAUCTIONS</h1>
     <p class="subtitle">Jarvis / Ultron Mode • Powered by Stark Industries</p>
     
-    <div class="theme-toggle-login">
-      <button id="theme-switch-login" class="btn-circle">🌓</button>
-    </div>
-
     <form id="login-form">
       <input type="email" id="email" placeholder="Email" required>
       <input type="password" id="password" placeholder="Contraseña" required>
@@ -29,23 +24,36 @@
     <p class="hint">Demo: demo@arcauctions.com / 123456</p>
   </div>
 
+  <!-- Botón circular flotante para cambiar tema -->
+  <button id="theme-fab" class="theme-fab" title="Cambiar tema Jarvis/Ultron">
+    🌓
+  </button>
+
   <script type="module">
-    import { initAuth } from './js/auth.js';
-    import { setTheme } from './js/theme.js';
+    import { initAuth } from '/ArcAuctions/js/auth.js';
     
-    window.onload = () => {
-      initAuth();
-      const savedTheme = localStorage.getItem('theme') || 'jarvis';
-      document.body.setAttribute('data-theme', savedTheme);
-      setTheme(savedTheme);
-      
-      document.getElementById('theme-switch-login').onclick = () => {
-        const newTheme = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
+    // Inicializar tema guardado
+    const savedTheme = localStorage.getItem('theme') || 'jarvis';
+    document.body.setAttribute('data-theme', savedTheme);
+    
+    // Botón de tema
+    const themeFab = document.getElementById('theme-fab');
+    if (themeFab) {
+      themeFab.onclick = () => {
+        const current = document.body.getAttribute('data-theme') || 'jarvis';
+        const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
         document.body.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        setTheme(newTheme);
+        
+        // Feedback visual
+        themeFab.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          themeFab.style.transform = 'scale(1)';
+        }, 200);
       };
-    };
+    }
+    
+    initAuth();
   </script>
 </body>
 </html>
