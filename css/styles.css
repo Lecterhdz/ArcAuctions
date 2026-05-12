@@ -1,26 +1,33 @@
+/* ===== JARVIS - Iron Man Arc Reactor Style ===== */
 :root[data-theme="jarvis"] {
-  --bg: #E8E9F3;
-  --card-bg: #FFFFFF;
+  --bg: linear-gradient(135deg, #E8E9F3 0%, #C5CBE3 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
   --text: #1A1A2E;
-  --text-light: #4A4A6A;
+  --text-glow: #0057B3;
   --accent: #0057B3;
   --accent-glow: #0088FF;
   --border: #FFD700;
+  --border-glow: rgba(255, 215, 0, 0.5);
   --danger: #E63946;
-  --menu-bg: #F0F2F5;
+  --menu-bg: rgba(240, 242, 245, 0.95);
   --input-bg: #FFFFFF;
+  --shadow: 0 8px 32px rgba(0, 87, 179, 0.2);
 }
 
+/* ===== ULTRON - Dark Villain Style ===== */
 :root[data-theme="ultron"] {
-  --bg: #0A0E17;
-  --card-bg: #1A1E2F;
-  --text: #F0F0F0;
-  --text-light: #CCCCCC;
+  --bg: linear-gradient(135deg, #0A0A0A 0%, #1A0000 50%, #0A0A0A 100%);
+  --card-bg: rgba(20, 0, 0, 0.95);
+  --text: #FF4444;
+  --text-glow: #FF0000;
   --accent: #E63946;
-  --accent-glow: #FF3366;
-  --border: #FF3366;
-  --menu-bg: #11151F;
-  --input-bg: #2A2E3F;
+  --accent-glow: #FF0000;
+  --border: #8B0000;
+  --border-glow: rgba(255, 0, 0, 0.5);
+  --danger: #FF0000;
+  --menu-bg: rgba(10, 0, 0, 0.98);
+  --input-bg: #1A0000;
+  --shadow: 0 8px 32px rgba(255, 0, 0, 0.3);
 }
 
 * {
@@ -35,37 +42,159 @@ body {
   color: var(--text);
   padding: 20px;
   min-height: 100vh;
+  transition: all 0.3s ease;
 }
 
-/* Forzar colores de texto en todos los elementos */
-h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
-  color: var(--text);
+/* === EFECTO REACTOR ARC (JARVIS) === */
+[data-theme="jarvis"] .reactor-ring {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,87,179,0.1) 0%, rgba(0,87,179,0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: pulse 4s ease-in-out infinite;
 }
 
-/* === MENÚ HAMBURGUESA MÁS PEQUEÑO === */
+/* === EFECTO OJO DE ULTRON === */
+[data-theme="ultron"] .reactor-ring {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,0,0,0.15) 0%, rgba(255,0,0,0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: ultronPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes ultronPulse {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); filter: blur(0px); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.15); filter: blur(5px); }
+}
+
+/* === TARJETAS JARVIS === */
+[data-theme="jarvis"] .card-rectangular {
+  background: var(--card-bg);
+  border-left: 5px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+}
+
+/* === TARJETAS ULTRON (EFECTO GRIETA) === */
+[data-theme="ultron"] .card-rectangular {
+  background: var(--card-bg);
+  border-left: 5px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="ultron"] .card-rectangular::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 0, 0, 0.05) 0px,
+    rgba(255, 0, 0, 0.05) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  pointer-events: none;
+}
+
+/* === BOTÓN MENÚ HAMBURGUESA === */
 .menu-hamburger {
   position: fixed;
   top: 20px;
   left: 20px;
-  width: 40px;
-  height: 40px;
+  width: 41px;
+  height: 41px;
   border-radius: 50%;
-  background: var(--accent);
-  color: white;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   z-index: 1001;
-  box-shadow: 0 0 12px var(--accent-glow);
   transition: 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 20px;
 }
 
-.menu-hamburger:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px var(--accent);
+[data-theme="jarvis"] .menu-hamburger {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+[data-theme="ultron"] .menu-hamburger {
+  background: var(--accent);
+  color: black;
+  box-shadow: 0 0 15px var(--accent-glow);
+  border: 1px solid #FF4444;
+}
+
+/* === BOTÓN TEMA FAB === */
+.theme-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 41px;
+  height: 41px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+[data-theme="jarvis"] .theme-fab {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+[data-theme="ultron"] .theme-fab {
+  background: #1A0000;
+  color: #FF4444;
+  box-shadow: 0 0 15px #FF0000;
+  border: 1px solid #FF4444;
+}
+
+.theme-fab:hover {
+  transform: scale(1.1);
+}
+
+[data-theme="jarvis"] .theme-fab:hover {
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+[data-theme="ultron"] .theme-fab:hover {
+  box-shadow: 0 0 20px #FF0000;
+  background: #FF0000;
+  color: black;
 }
 
 /* === MENÚ LATERAL === */
@@ -75,13 +204,21 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   left: -300px;
   width: 280px;
   height: 100%;
-  background: var(--menu-bg);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   box-shadow: 4px 0 20px rgba(0,0,0,0.3);
   z-index: 1000;
   padding: 80px 15px 20px 15px;
   transition: left 0.3s ease;
   overflow-y: auto;
+}
+
+[data-theme="jarvis"] .side-menu {
+  background: var(--menu-bg);
+}
+
+[data-theme="ultron"] .side-menu {
+  background: var(--menu-bg);
+  border-right: 1px solid #8B0000;
 }
 
 .side-menu.open {
@@ -98,14 +235,27 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
 .menu-header h3 {
   font-size: 20px;
   letter-spacing: 2px;
-  color: var(--text);
+}
+
+[data-theme="jarvis"] .menu-header h3 {
+  color: var(--accent);
+  text-shadow: 0 0 5px var(--accent-glow);
+}
+
+[data-theme="ultron"] .menu-header h3 {
+  color: #FF4444;
+  text-shadow: 0 0 5px #FF0000;
+  font-family: monospace;
 }
 
 .version {
   font-size: 10px;
   opacity: 0.7;
   margin-top: 5px;
-  color: var(--text-light);
+}
+
+[data-theme="ultron"] .version {
+  color: #FF8888;
 }
 
 .menu-item {
@@ -114,7 +264,6 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   margin: 10px 0;
   padding: 10px;
   background: transparent;
-  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 40px;
   cursor: pointer;
@@ -123,29 +272,34 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   transition: 0.2s;
 }
 
+[data-theme="jarvis"] .menu-item {
+  color: var(--text);
+}
+
+[data-theme="ultron"] .menu-item {
+  color: #FF4444;
+}
+
 .menu-item:hover {
   background: var(--accent);
+}
+
+[data-theme="jarvis"] .menu-item:hover {
   color: white;
+}
+
+[data-theme="ultron"] .menu-item:hover {
+  color: black;
+  background: #FF0000;
 }
 
 .logout {
   margin-top: 30px;
   border-color: var(--danger);
-  color: var(--danger);
 }
 
-.logout:hover {
-  background: var(--danger);
-  color: white;
-}
-
-/* === CONTENIDO PRINCIPAL === */
-#main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  margin-left: 0;
-  transition: margin-left 0.3s;
+[data-theme="ultron"] .logout {
+  color: #FF0000;
 }
 
 /* === BADGE DE USUARIO === */
@@ -161,10 +315,11 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   width: fit-content;
   float: right;
   clear: both;
+  backdrop-filter: blur(5px);
 }
 
-.user-badge span {
-  color: var(--text);
+[data-theme="ultron"] .user-badge {
+  border: 1px solid #FF4444;
 }
 
 .avatar-circle {
@@ -176,49 +331,45 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   align-items: center;
   justify-content: center;
   font-size: 18px;
+}
+
+[data-theme="jarvis"] .avatar-circle {
   color: white;
 }
 
+[data-theme="ultron"] .avatar-circle {
+  color: black;
+  background: #FF0000;
+}
+
 .plan-badge {
-  background: var(--border);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: bold;
+}
+
+[data-theme="jarvis"] .plan-badge {
+  background: var(--border);
   color: var(--text);
+}
+
+[data-theme="ultron"] .plan-badge {
+  background: #8B0000;
+  color: #FF8888;
 }
 
 /* === CARDS === */
 .card-rectangular {
-  background: var(--card-bg);
   border-radius: 20px;
   padding: 18px;
   margin: 15px 0;
-  border-left: 5px solid var(--accent);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transition: transform 0.2s;
 }
 
 .card-rectangular:hover {
   transform: translateY(-3px);
-}
-
-.card-rectangular h3, .card-rectangular p {
-  color: var(--text);
-}
-
-.card-circle {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: var(--card-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--border);
-  box-shadow: 0 0 10px var(--accent-glow);
-  margin: 10px;
 }
 
 .cards-grid {
@@ -230,8 +381,6 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
 
 /* === BOTONES === */
 .btn-rounded {
-  background: var(--accent);
-  color: white;
   border: none;
   padding: 8px 20px;
   border-radius: 40px;
@@ -241,45 +390,25 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   font-size: 14px;
 }
 
+[data-theme="jarvis"] .btn-rounded {
+  background: var(--accent);
+  color: white;
+}
+
+[data-theme="ultron"] .btn-rounded {
+  background: #8B0000;
+  color: #FF4444;
+  border: 1px solid #FF4444;
+}
+
+[data-theme="ultron"] .btn-rounded:hover {
+  background: #FF0000;
+  color: black;
+}
+
 .btn-rounded:hover {
   opacity: 0.9;
   transform: scale(1.02);
-}
-
-.btn-circle {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.btn-outline {
-  background: transparent;
-  border: 2px solid var(--accent);
-  color: var(--accent);
-  padding: 8px 18px;
-  border-radius: 40px;
-  cursor: pointer;
-  margin-top: 15px;
-  font-size: 14px;
-}
-
-.btn-outline:hover {
-  background: var(--accent);
-  color: white;
-}
-
-/* === VISTAS === */
-.view {
-  display: none;
-}
-
-.view.active {
-  display: block;
 }
 
 /* === LOGIN === */
@@ -290,18 +419,16 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   padding: 30px;
   background: var(--card-bg);
   border-radius: 30px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
 }
 
-.login-container h1 {
-  margin-bottom: 10px;
-  color: var(--text);
+[data-theme="jarvis"] .login-container {
+  box-shadow: 0 0 30px rgba(0,87,179,0.3);
 }
 
-.subtitle {
-  margin-bottom: 30px;
-  opacity: 0.7;
-  color: var(--text-light);
+[data-theme="ultron"] .login-container {
+  box-shadow: 0 0 30px rgba(255,0,0,0.3);
+  border: 1px solid #8B0000;
 }
 
 #login-form input {
@@ -312,30 +439,6 @@ h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text);
-}
-
-#login-form input::placeholder {
-  color: var(--text-light);
-}
-
-.hint {
-  font-size: 12px;
-  margin-top: 20px;
-  opacity: 0.6;
-  color: var(--text-light);
-}
-
-/* === INPUTS GENERALES === */
-input, textarea, select {
-  background: var(--input-bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 40px;
-  padding: 10px 15px;
-}
-
-input::placeholder {
-  color: var(--text-light);
 }
 
 /* === RESPONSIVE === */
@@ -354,78 +457,5 @@ input::placeholder {
     font-size: 18px;
     text-align: center;
     margin-top: 20px;
-    color: var(--text);
   }
 }
-/* === BOTÓN CIRCULAR FLOTANTE PARA TEMA === */
-.theme-fab {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 39px;
-  height: 39px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  border: none;
-  font-size: 21px;
-  cursor: pointer;
-  z-index: 1001;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.theme-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px var(--accent-glow);
-}
-
-/* === MODO ULTRON - FORZAR TEXTOS BLANCOS === */
-[data-theme="ultron"] body,
-[data-theme="ultron"] .view,
-[data-theme="ultron"] .card-rectangular,
-[data-theme="ultron"] .user-badge,
-[data-theme="ultron"] .menu-item,
-[data-theme="ultron"] .menu-header h3,
-[data-theme="ultron"] .version,
-[data-theme="ultron"] h1,
-[data-theme="ultron"] h2,
-[data-theme="ultron"] h3,
-[data-theme="ultron"] h4,
-[data-theme="ultron"] p,
-[data-theme="ultron"] span,
-[data-theme="ultron"] div,
-[data-theme="ultron"] li,
-[data-theme="ultron"] a,
-[data-theme="ultron"] label,
-[data-theme="ultron"] .subtitle,
-[data-theme="ultron"] .hint {
-  color: #FFFFFF !important;
-}
-
-[data-theme="ultron"] .user-badge span,
-[data-theme="ultron"] .card-rectangular p,
-[data-theme="ultron"] .card-rectangular h3 {
-  color: #FFFFFF !important;
-}
-
-[data-theme="ultron"] .plan-badge {
-  color: #0A0E17 !important;
-  background: var(--border) !important;
-}
-
-[data-theme="ultron"] input,
-[data-theme="ultron"] input::placeholder {
-  color: #FFFFFF !important;
-  background: #2A2E3F !important;
-}
-
-[data-theme="ultron"] .btn-rounded,
-[data-theme="ultron"] .btn-circle,
-[data-theme="ultron"] .menu-hamburger {
-  color: white !important;
-}
-
