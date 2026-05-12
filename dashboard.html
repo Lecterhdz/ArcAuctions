@@ -4,33 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ArcAuctions | Dashboard</title>
-  <meta name="description" content="Panel de control ArcAuctions - Subastas en tiempo real">
   <link rel="manifest" href="/ArcAuctions/manifest.json">
-  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="/ArcAuctions/css/styles.css">
 </head>
 <body data-theme="jarvis">
-  <!-- Botón menú hamburguesa estilo reactor arc -->
   <button id="menu-btn" class="menu-hamburger">☰</button>
 
-  <!-- Menú lateral -->
   <nav id="side-menu" class="side-menu">
     <div class="menu-header">
-      <div class="reactor-icon"></div>
       <h3>⚡ ARCAUCTIONS</h3>
-      <p class="version">v1.0 · ARC Reactor Core</p>
+      <p class="version">v2.0 · ARC Reactor</p>
     </div>
     <button class="menu-item" data-view="auctions">📡 Subastas Activas</button>
-    <button class="menu-item" data-view="profile">👤 Mi Perfil Stark</button>
-    <button class="menu-item" data-view="history">📜 Historial Arc</button>
+    <button class="menu-item" data-view="profile">👤 Mi Perfil</button>
+    <button class="menu-item" data-view="history">📜 Historial</button>
     <button class="menu-item" id="theme-switch-dash">🌓 Modo Jarvis/Ultron</button>
     <button class="menu-item logout" id="logout-btn">🔒 Cerrar Sesión</button>
   </nav>
 
-  <!-- Contenido principal -->
   <main id="main-content">
     <div class="user-badge">
-      <div class="avatar-circle" id="user-avatar">⚡</div>
-      <span id="user-email"></span>
+      <div class="avatar-circle">⚡</div>
+      <span id="user-email">Cargando...</span>
       <span class="plan-badge" id="plan-badge">DEMO</span>
     </div>
 
@@ -40,90 +35,71 @@
     </div>
 
     <div id="profile-view" class="view">
-      <h2>🤖 Perfil Stark Industries</h2>
+      <h2>🤖 Perfil Stark</h2>
       <div class="card-rectangular">
-        <p><strong>Email:</strong> <span id="profile-email"></span></p>
-        <p><strong>Plan ARC:</strong> <span id="profile-plan"></span></p>
-        <p><strong>Pujas restantes (demo):</strong> <span id="bids-remaining">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Plan ARC:</strong> <span id="profile-plan">-</span></p>
+        <p><strong>Pujas restantes:</strong> <span id="bids-remaining">-</span></p>
         <button id="upgrade-pro" class="btn-rounded">🚀 Upgrade a PRO (demo 24h)</button>
       </div>
     </div>
 
     <div id="history-view" class="view">
-      <h2>📜 Historial de pujas ARC</h2>
+      <h2>📜 Historial de pujas</h2>
       <div id="history-container" class="history-list"></div>
     </div>
   </main>
 
-<script type="module">
-    import { checkAuth, logout } from './js/auth.js';
-    import { loadAuctions, placeBid } from './js/auction.js';
-    import { setTheme, initTheme, toggleTheme } from './js/theme.js';
-    import { upgradeToPro, loadUserProfile, loadBidHistory } from './js/app.js';
+  <script type="module">
+    import { checkAuth, logout } from '/ArcAuctions/js/auth.js';
+    import { loadAuctions, placeBid } from '/ArcAuctions/js/auction.js';
+    import { setTheme } from '/ArcAuctions/js/theme.js';
+    import { upgradeToPro, loadUserProfile, loadBidHistory } from '/ArcAuctions/js/app.js';
 
-    window.checkAuthAndInit = async () => {
+    async function init() {
       const user = await checkAuth();
       if (!user) return;
       
-      // Inicializar tema guardado
+      // Inicializar tema
       const savedTheme = localStorage.getItem('theme') || 'jarvis';
       document.body.setAttribute('data-theme', savedTheme);
       
-      loadUserProfile(user);
+      // Cargar datos
+      await loadUserProfile(user);
       loadAuctions(user);
       
       // Menú hamburguesa
       const menuBtn = document.getElementById('menu-btn');
       const sideMenu = document.getElementById('side-menu');
-      if (menuBtn) {
-        menuBtn.onclick = () => sideMenu.classList.toggle('open');
-      }
+      menuBtn.onclick = () => sideMenu.classList.toggle('open');
       
-      // Toggle de tema (Jarvis/Ultron)
+      // Toggle tema
       const themeBtn = document.getElementById('theme-switch-dash');
-      if (themeBtn) {
-        themeBtn.onclick = () => {
-          const current = document.body.getAttribute('data-theme') || 'jarvis';
-          const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
-          document.body.setAttribute('data-theme', newTheme);
-          localStorage.setItem('theme', newTheme);
-          console.log('🎨 Tema cambiado a:', newTheme);
-        };
-      }
+      themeBtn.onclick = () => {
+        const current = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
+        document.body.setAttribute('data-theme', current);
+        localStorage.setItem('theme', current);
+        setTheme(current);
+      };
       
-      // Cerrar menú al seleccionar opción
-      document.querySelectorAll('.menu-item').forEach(btn => {
-        if (btn.id !== 'theme-switch-dash' && btn.id !== 'logout-btn') {
-          btn.onclick = (e) => {
-            const view = e.target.dataset.view;
-            if (view) {
-              document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-              document.getElementById(`${view}-view`).classList.add('active');
-              if (view === 'history') loadBidHistory(user);
-            }
-            sideMenu.classList.remove('open');
-          };
-        }
+      // Navegación
+      document.querySelectorAll('.menu-item[data-view]').forEach(btn => {
+        btn.onclick = (e) => {
+          const view = e.target.dataset.view;
+          document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+          document.getElementById(`${view}-view`).classList.add('active');
+          if (view === 'history') loadBidHistory(user);
+          sideMenu.classList.remove('open');
+        };
       });
       
-      // Logout
-      const logoutBtn = document.getElementById('logout-btn');
-      if (logoutBtn) {
-        logoutBtn.onclick = () => logout();
-      }
+      document.getElementById('logout-btn').onclick = () => logout();
+      document.getElementById('upgrade-pro').onclick = () => upgradeToPro(user);
       
-      // Upgrade PRO
-      const upgradeBtn = document.getElementById('upgrade-pro');
-      if (upgradeBtn) {
-        upgradeBtn.onclick = () => upgradeToPro(user);
-      }
-      
-      window.placeBid = (auctionId, currentPrice) => {
-        placeBid(user, auctionId, currentPrice);
-      };
-    };
+      window.placeBid = (auctionId, currentPrice) => placeBid(user, auctionId, currentPrice);
+    }
     
-    window.onload = checkAuthAndInit;
+    init().catch(console.error);
   </script>
 </body>
 </html>
