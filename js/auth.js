@@ -21,12 +21,12 @@ export async function initAuth() {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
     const user = await loginUser(email, pass);
-    if (user) window.location.href = '/dashboard.html';
+    if (user) window.location.href = './dashboard.html';
   };
   
   demoBtn.onclick = async () => {
     const demoUser = await loginUser("demo@stark.com", "123456");
-    if (demoUser) window.location.href = '/dashboard.html';
+    if (demoUser) window.location.href = './dashboard.html';
   };
 }
 
