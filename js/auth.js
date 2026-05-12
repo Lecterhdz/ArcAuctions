@@ -34,7 +34,7 @@ export async function checkAuth() {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = '/';
+        window.location.href = './';
         resolve(null);
       }
       resolve(user);
@@ -44,5 +44,5 @@ export async function checkAuth() {
 
 export async function logout() {
   await signOut(auth);
-  window.location.href = '/';
+  window.location.href = './';
 }
