@@ -69,7 +69,7 @@ export async function loadBidHistory(user) {
     const q = query(
       collection(db, "bids"),
       where("userId", "==", user.uid),
-      where("amount", ">", 0)
+      orderBy("timestamp", "desc")
     );
     const snapshot = await getDocs(q);
     const container = document.getElementById('history-container');
@@ -79,14 +79,8 @@ export async function loadBidHistory(user) {
         container.innerHTML = '<div class="card-rectangular">📭 No has hecho pujas aún. ¡Participa!</div>';
       } else {
         container.innerHTML = '';
-        const bids = [];
         snapshot.forEach(doc => {
-          bids.push(doc.data());
-        });
-        // Ordenar por timestamp descendente
-        bids.sort((a, b) => b.timestamp?.toDate() - a.timestamp?.toDate());
-        
-        bids.forEach(bid => {
+          const bid = doc.data();
           const date = bid.timestamp?.toDate() || new Date();
           container.innerHTML += `
             <div class="card-rectangular">
@@ -99,5 +93,13 @@ export async function loadBidHistory(user) {
     }
   } catch (error) {
     console.error("Error loading history:", error);
+    const container = document.getElementById('history-container');
+    if (container) {
+      if (error.code === 'failed-precondition') {
+        container.innerHTML = '<div class="card-rectangular">⚠️ Creando índice... Espera 1-2 minutos y recarga</div>';
+      } else {
+        container.innerHTML = '<div class="card-rectangular">❌ Error cargando historial</div>';
+      }
+    }
   }
 }
