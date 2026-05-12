@@ -6,14 +6,21 @@ const timers = {};
 
 // Función para contar subastas activas
 export function listenActiveAuctionsCount(callback) {
-  const q = query(collection(db, "auctions"), orderBy("endTime", "asc"));
+  const q = query(collection(db, "auctions"));
   
   return onSnapshot(q, (snapshot) => {
     let activeCount = 0;
+    const now = new Date();
     snapshot.forEach(docSnap => {
       const auction = docSnap.data();
-      const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
-      if (endTime > new Date()) {
+      let endTime;
+      try {
+        endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+      } catch (e) {
+        endTime = new Date(auction.endTime);
+      }
+      // Solo contar si no ha expirado
+      if (endTime > now) {
         activeCount++;
       }
     });
