@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcAuctions | Dashboard</title>
+  <meta name="description" content="Panel de control ArcAuctions - Subastas en tiempo real">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-theme="jarvis">
+  <!-- Botón menú hamburguesa estilo reactor arc -->
+  <button id="menu-btn" class="menu-hamburger">☰</button>
+
+  <!-- Menú lateral -->
+  <nav id="side-menu" class="side-menu">
+    <div class="menu-header">
+      <div class="reactor-icon"></div>
+      <h3>⚡ ARCAUCTIONS</h3>
+      <p class="version">v1.0 · ARC Reactor Core</p>
+    </div>
+    <button class="menu-item" data-view="auctions">📡 Subastas Activas</button>
+    <button class="menu-item" data-view="profile">👤 Mi Perfil Stark</button>
+    <button class="menu-item" data-view="history">📜 Historial Arc</button>
+    <button class="menu-item" id="theme-switch-dash">🌓 Modo Jarvis/Ultron</button>
+    <button class="menu-item logout" id="logout-btn">🔒 Cerrar Sesión</button>
+  </nav>
+
+  <!-- Contenido principal -->
+  <main id="main-content">
+    <div class="user-badge">
+      <div class="avatar-circle" id="user-avatar">⚡</div>
+      <span id="user-email"></span>
+      <span class="plan-badge" id="plan-badge">DEMO</span>
+    </div>
+
+    <div id="auctions-view" class="view active">
+      <h2>🔥 Subastas ARC en tiempo real</h2>
+      <div id="auctions-container" class="cards-grid"></div>
+    </div>
+
+    <div id="profile-view" class="view">
+      <h2>🤖 Perfil Stark Industries</h2>
+      <div class="card-rectangular">
+        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+        <p><strong>Plan ARC:</strong> <span id="profile-plan"></span></p>
+        <p><strong>Pujas restantes (demo):</strong> <span id="bids-remaining">-</span></p>
+        <button id="upgrade-pro" class="btn-rounded">🚀 Upgrade a PRO (demo 24h)</button>
+      </div>
+    </div>
+
+    <div id="history-view" class="view">
+      <h2>📜 Historial de pujas ARC</h2>
+      <div id="history-container" class="history-list"></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { checkAuth, logout } from './js/auth.js';
+    import { loadAuctions, placeBid } from './js/auction.js';
+    import { setTheme, initTheme } from './js/theme.js';
+    import { upgradeToPro, loadUserProfile, loadBidHistory } from './js/app.js';
+
+    window.checkAuthAndInit = async () => {
+      const user = await checkAuth();
+      if (!user) return;
+      
+      initTheme();
+      loadUserProfile(user);
+      loadAuctions(user);
+      
+      // Menú hamburguesa
+      const menuBtn = document.getElementById('menu-btn');
+      const sideMenu = document.getElementById('side-menu');
+      menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      
+      // Cerrar menú al elegir opción
+      document.querySelectorAll('.menu-item').forEach(btn => {
+        btn.onclick = (e) => {
+          if (e.target.id === 'theme-switch-dash') {
+            const newTheme = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            setTheme(newTheme);
+          } else if (e.target.id === 'logout-btn') {
+            logout();
+          } else if (e.target.dataset.view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`${e.target.dataset.view}-view`).classList.add('active');
+            if (e.target.dataset.view === 'history') loadBidHistory(user);
+          }
+          sideMenu.classList.remove('open');
+        };
+      });
+      
+      document.getElementById('upgrade-pro').onclick = () => upgradeToPro(user);
+      
+      window.placeBid = (auctionId, currentPrice) => {
+        placeBid(user, auctionId, currentPrice);
+      };
+    };
+    
+    window.onload = checkAuthAndInit;
+  </script>
+</body>
+</html>
