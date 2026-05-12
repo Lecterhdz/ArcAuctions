@@ -447,12 +447,12 @@
     
     initTheme();
     
-    // Crear partículas visibles
+    // Crear partículas
     function createParticles() {
       const container = document.getElementById('particles-container');
       if (!container) return;
       container.innerHTML = '';
-      for (let i = 0; i回道<50; i++) {
+      for (let i = 0; i < 50; i++) {
         const particle = document.createElement('div');
         particle.classList.add('particle');
         particle.style.left = Math.random() * 100 + '%';
