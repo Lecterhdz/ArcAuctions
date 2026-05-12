@@ -236,9 +236,9 @@
   <button id="theme-fab" class="theme-fab">🌓<span class="fab-tooltip">JARVIS / ULTRON</span></button>
 
   <script type="module">
-    import { checkAuth, logout } from '/ArcAuctions/js/auth.js';
+    import { checkAuth, logout, getCurrentUser } from '/ArcAuctions/js/auth.js';
     import { loadAuctions, placeBid } from '/ArcAuctions/js/auction.js';
-    import { initTheme, toggleTheme } from '/ArcAuctions/js/theme.js';
+    import { initTheme, toggleTheme, getCurrentTheme } from '/ArcAuctions/js/theme.js';
     import { upgradeToPro, loadUserProfile, loadBidHistory } from '/ArcAuctions/js/app.js';
     import { db } from '/ArcAuctions/js/firebase-config.js';
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
