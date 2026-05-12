@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ArcAuctions | Powered by Arc Reactor</title>
+  <meta name="description" content="Plataforma de subastas inteligente estilo Iron Man - Jarvis/Ultron">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0057B3">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-theme="jarvis">
+  <div class="login-container">
+    <div class="reactor-ring"></div>
+    <h1>⚡ ARCAUCTIONS</h1>
+    <p class="subtitle">Jarvis / Ultron Mode • Powered by Stark Industries</p>
+    
+    <div class="theme-toggle-login">
+      <button id="theme-switch-login" class="btn-circle">🌓</button>
+    </div>
+
+    <form id="login-form">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit" class="btn-rounded">ACCEDER AL ARC</button>
+    </form>
+    
+    <button id="demo-btn" class="btn-outline">🎮 MODO DEMO (3 pujas/hora)</button>
+    <p class="hint">Demo: demo@arcauctions.com / 123456</p>
+  </div>
+
+  <script type="module">
+    import { initAuth } from './js/auth.js';
+    import { setTheme } from './js/theme.js';
+    
+    window.onload = () => {
+      initAuth();
+      const savedTheme = localStorage.getItem('theme') || 'jarvis';
+      document.body.setAttribute('data-theme', savedTheme);
+      setTheme(savedTheme);
+      
+      document.getElementById('theme-switch-login').onclick = () => {
+        const newTheme = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
+        document.body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        setTheme(newTheme);
+      };
+    };
+  </script>
+</body>
+</html>
