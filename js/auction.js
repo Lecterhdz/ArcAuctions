@@ -48,7 +48,13 @@ function createAuctionCard(auction, user) {
   card.className = 'card-rectangular auction-card';
   card.id = `auction-${auction.id}`;
   
-  const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+  let endTime;
+  try {
+    endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+  } catch (e) {
+    endTime = new Date(auction.endTime);
+  }
+  
   const isExpired = endTime < new Date();
   
   card.innerHTML = `
@@ -60,25 +66,21 @@ function createAuctionCard(auction, user) {
       $${auction.currentPrice || 0}
     </div>
     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-      <span>⏳ <span id="timer-${auction.id}" class="auction-timer">--:--:--</span></span>
+      <span>⏳ <span id="timer-${auction.id}" class="auction-timer ${isExpired ? 'timer-expired' : ''}">
+        ${isExpired ? '🔴 FINALIZADA' : '--:--:--'}
+      </span></span>
       <span>📊 ${auction.bidsCount || 0} pujas</span>
     </div>
     <div id="last-bidder-${auction.id}" style="font-size: 12px; opacity: 0.7; margin-bottom: 10px;">
       ${auction.lastBidder ? `Última puja: ${auction.lastBidder.split('@')[0]}` : 'Sin pujas aún'}
     </div>
-    <button class="btn-rounded bid-button" id="bid-${auction.id}" ${isExpired ? 'disabled' : ''}>
-      ⚡ Pujar +$10
+    <button class="btn-rounded bid-button" id="bid-${auction.id}" ${isExpired ? 'disabled style="opacity:0.5;"' : ''}>
+      ${isExpired ? '⛔ Finalizada' : '⚡ Pujar +$10'}
     </button>
   `;
   
-  if (!isExpired) {
+  if (!isExpired && endTime > new Date()) {
     startTimer(auction.id, endTime);
-  } else {
-    const timerSpan = document.getElementById(`timer-${auction.id}`);
-    if (timerSpan) {
-      timerSpan.innerHTML = '🔴 FINALIZADA';
-      timerSpan.style.color = '#E63946';
-    }
   }
   
   setTimeout(() => {
@@ -115,6 +117,10 @@ function startTimer(auctionId, endTime) {
         btn.innerHTML = '⛔ Subasta finalizada';
       }
       
+      // Actualizar contador de subastas activas
+      const event = new CustomEvent('auction-expired');
+      window.dispatchEvent(event);
+      
       if (timers[auctionId]) clearInterval(timers[auctionId]);
       return;
     }
@@ -125,9 +131,11 @@ function startTimer(auctionId, endTime) {
     
     timerSpan.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     
+    // Cambiar color si queda menos de 1 hora
     if (diff < 3600000) {
       timerSpan.style.color = '#FF6600';
       timerSpan.style.fontWeight = 'bold';
+      timerSpan.classList.add('timer-warning');
     }
   }
   
