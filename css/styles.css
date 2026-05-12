@@ -357,3 +357,75 @@ input::placeholder {
     color: var(--text);
   }
 }
+/* === BOTÓN CIRCULAR FLOTANTE PARA TEMA === */
+.theme-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* === MODO ULTRON - FORZAR TEXTOS BLANCOS === */
+[data-theme="ultron"] body,
+[data-theme="ultron"] .view,
+[data-theme="ultron"] .card-rectangular,
+[data-theme="ultron"] .user-badge,
+[data-theme="ultron"] .menu-item,
+[data-theme="ultron"] .menu-header h3,
+[data-theme="ultron"] .version,
+[data-theme="ultron"] h1,
+[data-theme="ultron"] h2,
+[data-theme="ultron"] h3,
+[data-theme="ultron"] h4,
+[data-theme="ultron"] p,
+[data-theme="ultron"] span,
+[data-theme="ultron"] div,
+[data-theme="ultron"] li,
+[data-theme="ultron"] a,
+[data-theme="ultron"] label,
+[data-theme="ultron"] .subtitle,
+[data-theme="ultron"] .hint {
+  color: #FFFFFF !important;
+}
+
+[data-theme="ultron"] .user-badge span,
+[data-theme="ultron"] .card-rectangular p,
+[data-theme="ultron"] .card-rectangular h3 {
+  color: #FFFFFF !important;
+}
+
+[data-theme="ultron"] .plan-badge {
+  color: #0A0E17 !important;
+  background: var(--border) !important;
+}
+
+[data-theme="ultron"] input,
+[data-theme="ultron"] input::placeholder {
+  color: #FFFFFF !important;
+  background: #2A2E3F !important;
+}
+
+[data-theme="ultron"] .btn-rounded,
+[data-theme="ultron"] .btn-circle,
+[data-theme="ultron"] .menu-hamburger {
+  color: white !important;
+}
+
