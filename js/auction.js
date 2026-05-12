@@ -3,7 +3,68 @@ import { collection, query, addDoc, updateDoc, doc, onSnapshot, orderBy, limit, 
 
 // Variable para almacenar timers
 const timers = {};
+// Funciones para administrar subastas
+export async function addAuction(auctionData) {
+  try {
+    const docRef = await addDoc(collection(db, "auctions"), {
+      title: auctionData.title,
+      currentPrice: auctionData.currentPrice,
+      endTime: new Date(auctionData.endTime),
+      seller: auctionData.seller || "Stark Industries",
+      bidsCount: 0,
+      createdAt: new Date()
+    });
+    showToast(`✅ Subasta "${auctionData.title}" creada`, 'success');
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding auction:", error);
+    showToast('❌ Error al crear la subasta', 'error');
+    return null;
+  }
+}
 
+export async function updateAuction(auctionId, auctionData) {
+  try {
+    const auctionRef = doc(db, "auctions", auctionId);
+    await updateDoc(auctionRef, {
+      title: auctionData.title,
+      currentPrice: auctionData.currentPrice,
+      endTime: new Date(auctionData.endTime),
+      seller: auctionData.seller || "Stark Industries"
+    });
+    showToast(`✏️ Subasta "${auctionData.title}" actualizada`, 'success');
+    return true;
+  } catch (error) {
+    console.error("Error updating auction:", error);
+    showToast('❌ Error al actualizar la subasta', 'error');
+    return false;
+  }
+}
+
+export async function deleteAuction(auctionId) {
+  if (!confirm('¿Estás seguro de eliminar esta subasta?')) return false;
+  
+  try {
+    const auctionRef = doc(db, "auctions", auctionId);
+    await deleteDoc(auctionRef);
+    showToast(`🗑️ Subasta eliminada`, 'success');
+    return true;
+  } catch (error) {
+    console.error("Error deleting auction:", error);
+    showToast('❌ Error al eliminar la subasta', 'error');
+    return false;
+  }
+}
+
+export async function getAllAuctions() {
+  const q = query(collection(db, "auctions"), orderBy("endTime", "asc"));
+  const snapshot = await getDocs(q);
+  const auctions = [];
+  snapshot.forEach(doc => {
+    auctions.push({ id: doc.id, ...doc.data() });
+  });
+  return auctions;
+}
 export async function loadAuctions(user) {
   const container = document.getElementById('auctions-container');
   if (!container) return;
