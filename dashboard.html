@@ -626,7 +626,13 @@
     const license = await getUserLicense(user);
     if (license && license.expiry) {
       document.getElementById('license-expiry').textContent = license.expiry.toLocaleDateString();
-    }    
+    } 
+    // Verificar si puede crear subastas (admin)
+    const canCreate = await canCreateAuctions(user);
+    if (!canCreate) {
+      document.getElementById('add-auction-fab').style.display = 'none';
+      document.getElementById('edit-auction-fab').style.display = 'none';
+    }
     init();
   </script>
 </body>
