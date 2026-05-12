@@ -309,5 +309,27 @@
     
     init();
   </script>
+  <!-- Modal para agregar/editar subastas -->
+  <div id="auction-modal" class="modal-overlay">
+    <div class="modal-container">
+      <h2 id="modal-title">➕ Nueva Subasta</h2>
+      
+      <div id="select-auction-section" style="display: none;">
+        <label>Seleccionar subasta a editar:</label>
+        <div id="auction-select-list" class="select-auction-list"></div>
+      </div>
+      
+      <input type="text" id="auction-title" placeholder="Título de la subasta" required>
+      <input type="number" id="auction-price" placeholder="Precio inicial" value="100">
+      <input type="datetime-local" id="auction-endtime" required>
+      <input type="text" id="auction-seller" placeholder="Vendedor (ej: Stark Industries)">
+      
+      <div class="modal-buttons">
+        <button id="modal-save-btn" class="btn-save">💾 Guardar</button>
+        <button id="modal-delete-btn" class="btn-delete" style="display: none;">🗑️ Eliminar</button>
+        <button id="modal-cancel-btn" class="btn-cancel">❌ Cancelar</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
