@@ -259,7 +259,106 @@
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 3000);
     }
-
+    // Variables del modal
+    let currentEditAuctionId = null;
+    let allAuctionsList = [];
+    
+    // Abrir modal para agregar
+    document.getElementById('add-auction-fab').onclick = () => {
+      currentEditAuctionId = null;
+      document.getElementById('modal-title').innerHTML = '➕ Nueva Subasta';
+      document.getElementById('select-auction-section').style.display = 'none';
+      document.getElementById('modal-delete-btn').style.display = 'none';
+      document.getElementById('auction-title').value = '';
+      document.getElementById('auction-price').value = '100';
+      document.getElementById('auction-seller').value = '';
+      // Set fecha por defecto: +1 hora
+      const defaultDate = new Date();
+      defaultDate.setHours(defaultDate.getHours() + 1);
+      document.getElementById('auction-endtime').value = defaultDate.toISOString().slice(0, 16);
+      document.getElementById('auction-modal').classList.add('active');
+    };
+    
+    // Abrir modal para editar
+    document.getElementById('edit-auction-fab').onclick = async () => {
+      allAuctionsList = await getAllAuctions();
+      const listContainer = document.getElementById('auction-select-list');
+      
+      if (allAuctionsList.length === 0) {
+        showToast('📭 No hay subastas para editar', 'warning');
+        return;
+      }
+      
+      listContainer.innerHTML = allAuctionsList.map(auction => `
+        <div class="auction-select-item" data-id="${auction.id}">
+          <strong>${auction.title}</strong><br>
+          <small>💰 $${auction.currentPrice} | ⏳ Termina: ${auction.endTime?.toDate?.()?.toLocaleString() || new Date(auction.endTime).toLocaleString()}</small>
+        </div>
+      `).join('');
+      
+      // Seleccionar subasta
+      document.querySelectorAll('.auction-select-item').forEach(el => {
+        el.onclick = () => {
+          document.querySelectorAll('.auction-select-item').forEach(i => i.classList.remove('selected'));
+          el.classList.add('selected');
+          const auction = allAuctionsList.find(a => a.id === el.dataset.id);
+          if (auction) {
+            currentEditAuctionId = auction.id;
+            document.getElementById('auction-title').value = auction.title || '';
+            document.getElementById('auction-price').value = auction.currentPrice || 100;
+            document.getElementById('auction-seller').value = auction.seller || '';
+            const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+            document.getElementById('auction-endtime').value = endTime.toISOString().slice(0, 16);
+          }
+        };
+      });
+      
+      document.getElementById('modal-title').innerHTML = '✏️ Editar Subasta';
+      document.getElementById('select-auction-section').style.display = 'block';
+      document.getElementById('modal-delete-btn').style.display = 'block';
+      document.getElementById('auction-modal').classList.add('active');
+    };
+    
+    // Guardar subasta
+    document.getElementById('modal-save-btn').onclick = async () => {
+      const title = document.getElementById('auction-title').value;
+      const price = parseFloat(document.getElementById('auction-price').value);
+      const endTime = new Date(document.getElementById('auction-endtime').value);
+      const seller = document.getElementById('auction-seller').value || 'Stark Industries';
+      
+      if (!title || isNaN(price) || !endTime) {
+        showToast('⚠️ Completa todos los campos', 'warning');
+        return;
+      }
+      
+      if (endTime < new Date()) {
+        showToast('⚠️ La fecha debe ser futura', 'warning');
+        return;
+      }
+      
+      if (currentEditAuctionId) {
+        await updateAuction(currentEditAuctionId, { title, currentPrice: price, endTime, seller });
+      } else {
+        await addAuction({ title, currentPrice: price, endTime, seller });
+      }
+      
+      document.getElementById('auction-modal').classList.remove('active');
+      location.reload();
+    };
+    
+    // Eliminar subasta
+    document.getElementById('modal-delete-btn').onclick = async () => {
+      if (currentEditAuctionId) {
+        await deleteAuction(currentEditAuctionId);
+        document.getElementById('auction-modal').classList.remove('active');
+        location.reload();
+      }
+    };
+    
+    // Cancelar
+    document.getElementById('modal-cancel-btn').onclick = () => {
+      document.getElementById('auction-modal').classList.remove('active');
+    };
     async function updateStats(user) {
       const bidsSnap = await getDocs(query(collection(db, "bids"), where("userId", "==", user.uid)));
       const auctionsSnap = await getDocs(collection(db, "auctions"));
