@@ -55,45 +55,68 @@
     </div>
   </main>
 
-  <script type="module">
+<script type="module">
     import { checkAuth, logout } from './js/auth.js';
     import { loadAuctions, placeBid } from './js/auction.js';
-    import { setTheme, initTheme } from './js/theme.js';
+    import { setTheme, initTheme, toggleTheme } from './js/theme.js';
     import { upgradeToPro, loadUserProfile, loadBidHistory } from './js/app.js';
 
     window.checkAuthAndInit = async () => {
       const user = await checkAuth();
       if (!user) return;
       
-      initTheme();
+      // Inicializar tema guardado
+      const savedTheme = localStorage.getItem('theme') || 'jarvis';
+      document.body.setAttribute('data-theme', savedTheme);
+      
       loadUserProfile(user);
       loadAuctions(user);
       
       // Menú hamburguesa
       const menuBtn = document.getElementById('menu-btn');
       const sideMenu = document.getElementById('side-menu');
-      menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      if (menuBtn) {
+        menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      }
       
-      // Cerrar menú al elegir opción
-      document.querySelectorAll('.menu-item').forEach(btn => {
-        btn.onclick = (e) => {
-          if (e.target.id === 'theme-switch-dash') {
-            const newTheme = document.body.getAttribute('data-theme') === 'jarvis' ? 'ultron' : 'jarvis';
-            document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            setTheme(newTheme);
-          } else if (e.target.id === 'logout-btn') {
-            logout();
-          } else if (e.target.dataset.view) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(`${e.target.dataset.view}-view`).classList.add('active');
-            if (e.target.dataset.view === 'history') loadBidHistory(user);
-          }
-          sideMenu.classList.remove('open');
+      // Toggle de tema (Jarvis/Ultron)
+      const themeBtn = document.getElementById('theme-switch-dash');
+      if (themeBtn) {
+        themeBtn.onclick = () => {
+          const current = document.body.getAttribute('data-theme') || 'jarvis';
+          const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
+          document.body.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          console.log('🎨 Tema cambiado a:', newTheme);
         };
+      }
+      
+      // Cerrar menú al seleccionar opción
+      document.querySelectorAll('.menu-item').forEach(btn => {
+        if (btn.id !== 'theme-switch-dash' && btn.id !== 'logout-btn') {
+          btn.onclick = (e) => {
+            const view = e.target.dataset.view;
+            if (view) {
+              document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+              document.getElementById(`${view}-view`).classList.add('active');
+              if (view === 'history') loadBidHistory(user);
+            }
+            sideMenu.classList.remove('open');
+          };
+        }
       });
       
-      document.getElementById('upgrade-pro').onclick = () => upgradeToPro(user);
+      // Logout
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.onclick = () => logout();
+      }
+      
+      // Upgrade PRO
+      const upgradeBtn = document.getElementById('upgrade-pro');
+      if (upgradeBtn) {
+        upgradeBtn.onclick = () => upgradeToPro(user);
+      }
       
       window.placeBid = (auctionId, currentPrice) => {
         placeBid(user, auctionId, currentPrice);
