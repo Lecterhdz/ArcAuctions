@@ -15,7 +15,7 @@ import {
 // Configuración de licencias
 const LICENSE_CONFIG = {
   demo: { maxBids: 3, duration: null, canCreateAuctions: false },
-  pro: { maxBids: Infinity, duration: 30, canCreateAuctions: false }, // 30 días
+  pro: { maxBids: Infinity, duration: 30, canCreateAuctions: false },
   admin: { maxBids: Infinity, duration: null, canCreateAuctions: true }
 };
 
@@ -52,7 +52,7 @@ export async function checkLicenseStatus(user) {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
   
-  if (!userSnap.exists()) return true; // Usuario nuevo, se creará con demo
+  if (!userSnap.exists()) return true;
   
   const userData = userSnap.data();
   const licenseStatus = userData.licenseStatus || 'active';
@@ -61,7 +61,6 @@ export async function checkLicenseStatus(user) {
   if (licenseStatus === 'blocked') return false;
   
   if (licenseExpiry && licenseExpiry < new Date()) {
-    // Licencia expirada
     await updateDoc(userRef, { licenseStatus: 'expired' });
     return false;
   }
@@ -75,9 +74,8 @@ async function ensureUserProfile(user) {
   const userSnap = await getDoc(userRef);
   
   if (!userSnap.exists()) {
-    // Usuario nuevo - asignar licencia DEMO
     const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 7); // 7 días de prueba
+    expiryDate.setDate(expiryDate.getDate() + 7);
     
     await setDoc(userRef, {
       email: user.email,
@@ -93,7 +91,7 @@ async function ensureUserProfile(user) {
   }
 }
 
-// Agregar esta función en js/auth.js
+// Obtener información de la licencia del usuario
 export async function getUserLicense(user) {
   try {
     const userRef = doc(db, "users", user.uid);
@@ -104,18 +102,20 @@ export async function getUserLicense(user) {
     }
     
     const data = userSnap.data();
-    const LICENSE_CONFIG = {
+    const role = data.role || 'demo';
+    
+    const roleConfig = {
       demo: { maxBids: 3, canCreateAuctions: false },
       pro: { maxBids: Infinity, canCreateAuctions: false },
       admin: { maxBids: Infinity, canCreateAuctions: true }
     };
     
     return {
-      type: data.role || 'demo',
+      type: role,
       status: data.licenseStatus || 'active',
       expiry: data.licenseExpiry?.toDate?.() || data.licenseExpiry,
-      maxBids: LICENSE_CONFIG[data.role || 'demo']?.maxBids || 3,
-      canCreateAuctions: LICENSE_CONFIG[data.role || 'demo']?.canCreateAuctions || false
+      maxBids: roleConfig[role]?.maxBids || 3,
+      canCreateAuctions: roleConfig[role]?.canCreateAuctions || false
     };
   } catch (error) {
     console.error("Error getting user license:", error);
@@ -123,12 +123,13 @@ export async function getUserLicense(user) {
   }
 }
 
+// Verificar si el usuario puede crear subastas (SÓLO UNA VEZ DECLARADA)
 export async function canCreateAuctions(user) {
   const license = await getUserLicense(user);
   return license.canCreateAuctions === true;
 }
 
-// Activar licencia PRO (para admin, o por pago)
+// Activar licencia PRO
 export async function activateProLicense(user, durationDays = 30) {
   try {
     const userRef = doc(db, "users", user.uid);
@@ -150,7 +151,7 @@ export async function activateProLicense(user, durationDays = 30) {
   }
 }
 
-// Bloquear usuario (admin)
+// Bloquear usuario
 export async function blockUser(userId, reason = '') {
   try {
     const userRef = doc(db, "users", userId);
@@ -164,12 +165,6 @@ export async function blockUser(userId, reason = '') {
     console.error("Error blocking user:", error);
     return { success: false };
   }
-}
-
-// Verificar si el usuario puede crear subastas
-export async function canCreateAuctions(user) {
-  const license = await getUserLicense(user);
-  return license?.canCreateAuctions === true;
 }
 
 export async function initAuth() {
