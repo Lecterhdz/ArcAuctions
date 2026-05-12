@@ -49,6 +49,11 @@
     </div>
   </main>
 
+  <!-- Botón circular flotante para cambiar tema -->
+  <button id="theme-fab" class="theme-fab" title="Cambiar tema Jarvis/Ultron">
+    🌓
+  </button>
+
   <script type="module">
     import { checkAuth, logout } from '/ArcAuctions/js/auth.js';
     import { loadAuctions, placeBid } from '/ArcAuctions/js/auction.js';
@@ -59,7 +64,7 @@
       const user = await checkAuth();
       if (!user) return;
       
-      // Inicializar tema
+      // Inicializar tema guardado
       const savedTheme = localStorage.getItem('theme') || 'jarvis';
       document.body.setAttribute('data-theme', savedTheme);
       
@@ -70,10 +75,11 @@
       // Menú hamburguesa
       const menuBtn = document.getElementById('menu-btn');
       const sideMenu = document.getElementById('side-menu');
-      menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      if (menuBtn) {
+        menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      }
       
-      // Tema
-      // AGREGA este código para el botón FAB:
+      // BOTÓN CIRCULAR FLOTANTE PARA TEMA (SIN DUPLICADO)
       const themeFab = document.getElementById('theme-fab');
       if (themeFab) {
         themeFab.onclick = () => {
@@ -81,7 +87,7 @@
           const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
           document.body.setAttribute('data-theme', newTheme);
           localStorage.setItem('theme', newTheme);
-          console.log('🎨 Tema cambiado a:', newTheme);
+          setTheme(newTheme);
           
           // Feedback visual
           themeFab.style.transform = 'scale(1.2)';
@@ -90,20 +96,11 @@
           }, 200);
         };
       }
-      // En index.html, dentro del script
-      const themeFab = document.getElementById('theme-fab');
-      if (themeFab) {
-        themeFab.onclick = () => {
-          const current = document.body.getAttribute('data-theme') || 'jarvis';
-          const newTheme = current === 'jarvis' ? 'ultron' : 'jarvis';
-          document.body.setAttribute('data-theme', newTheme);
-          localStorage.setItem('theme', newTheme);
-        };
-      }      
-      // Navegación
+      
+      // Navegación del menú
       document.querySelectorAll('.menu-item[data-view]').forEach(btn => {
         btn.onclick = (e) => {
-          const view = e.target.dataset.view;
+          const view = e.target.getAttribute('data-view');
           document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
           document.getElementById(`${view}-view`).classList.add('active');
           if (view === 'history') loadBidHistory(user);
@@ -111,17 +108,23 @@
         };
       });
       
-      document.getElementById('logout-btn').onclick = () => logout();
-      document.getElementById('upgrade-pro').onclick = () => upgradeToPro(user);
+      // Logout
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.onclick = () => logout();
+      }
       
+      // Upgrade PRO
+      const upgradeBtn = document.getElementById('upgrade-pro');
+      if (upgradeBtn) {
+        upgradeBtn.onclick = () => upgradeToPro(user);
+      }
+      
+      // Exponer placeBid globalmente
       window.placeBid = (auctionId, currentPrice) => placeBid(user, auctionId, currentPrice);
     }
     
     init().catch(console.error);
   </script>
-  <!-- Botón circular flotante para cambiar tema -->
-<button id="theme-fab" class="theme-fab" title="Cambiar tema Jarvis/Ultron">
-  🌓
-</button>
 </body>
 </html>
