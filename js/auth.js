@@ -8,12 +8,29 @@ import {
   doc, 
   getDoc, 
   setDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Configuración de licencias
+const LICENSE_CONFIG = {
+  demo: { maxBids: 3, duration: null, canCreateAuctions: false },
+  pro: { maxBids: Infinity, duration: 30, canCreateAuctions: false }, // 30 días
+  admin: { maxBids: Infinity, duration: null, canCreateAuctions: true }
+};
+
+// Login con verificación de licencia
 export async function loginUser(email, password) {
   try {
     const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const isValid = await checkLicenseStatus(userCred.user);
+    
+    if (!isValid) {
+      await signOut(auth);
+      alert("⚠️ Tu licencia ha expirado o está inactiva. Contacta con soporte.");
+      return null;
+    }
+    
     await ensureUserProfile(userCred.user);
     return userCred.user;
   } catch (error) {
@@ -30,20 +47,111 @@ export async function loginUser(email, password) {
   }
 }
 
+// Verificar estado de la licencia
+export async function checkLicenseStatus(user) {
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  
+  if (!userSnap.exists()) return true; // Usuario nuevo, se creará con demo
+  
+  const userData = userSnap.data();
+  const licenseStatus = userData.licenseStatus || 'active';
+  const licenseExpiry = userData.licenseExpiry?.toDate?.() || userData.licenseExpiry;
+  
+  if (licenseStatus === 'blocked') return false;
+  
+  if (licenseExpiry && licenseExpiry < new Date()) {
+    // Licencia expirada
+    await updateDoc(userRef, { licenseStatus: 'expired' });
+    return false;
+  }
+  
+  return true;
+}
+
+// Crear/actualizar perfil con licencia
 async function ensureUserProfile(user) {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
   
   if (!userSnap.exists()) {
+    // Usuario nuevo - asignar licencia DEMO
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 7); // 7 días de prueba
+    
     await setDoc(userRef, {
       email: user.email,
-      plan: 'demo',
+      role: 'demo',
+      licenseType: 'demo',
+      licenseStatus: 'active',
+      licenseExpiry: expiryDate,
       bidsToday: 0,
-      lastBidReset: serverTimestamp(),
+      totalBids: 0,
       createdAt: serverTimestamp()
     });
-    console.log("✅ Perfil creado para:", user.email);
+    console.log("✅ Licencia DEMO creada para:", user.email);
   }
+}
+
+// Obtener info de licencia del usuario
+export async function getUserLicense(user) {
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  
+  if (!userSnap.exists()) return null;
+  
+  const data = userSnap.data();
+  return {
+    type: data.licenseType || 'demo',
+    status: data.licenseStatus || 'active',
+    expiry: data.licenseExpiry?.toDate?.() || data.licenseExpiry,
+    maxBids: LICENSE_CONFIG[data.role || 'demo']?.maxBids || 3,
+    canCreateAuctions: data.role === 'admin'
+  };
+}
+
+// Activar licencia PRO (para admin, o por pago)
+export async function activateProLicense(user, durationDays = 30) {
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + durationDays);
+    
+    await updateDoc(userRef, {
+      role: 'pro',
+      licenseType: 'pro',
+      licenseStatus: 'active',
+      licenseExpiry: expiryDate,
+      upgradedAt: serverTimestamp()
+    });
+    
+    return { success: true, expiry: expiryDate };
+  } catch (error) {
+    console.error("Error activating pro license:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Bloquear usuario (admin)
+export async function blockUser(userId, reason = '') {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      licenseStatus: 'blocked',
+      blockReason: reason,
+      blockedAt: serverTimestamp()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    return { success: false };
+  }
+}
+
+// Verificar si el usuario puede crear subastas
+export async function canCreateAuctions(user) {
+  const license = await getUserLicense(user);
+  return license?.canCreateAuctions === true;
 }
 
 export async function initAuth() {
@@ -68,14 +176,20 @@ export async function initAuth() {
   }
 }
 
-// ✅ FUNCIÓN EXPORTADA para verificar autenticación
 export async function checkAuth() {
   return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = '/ArcAuctions/';
         resolve(null);
       } else {
+        const isValid = await checkLicenseStatus(user);
+        if (!isValid) {
+          await signOut(auth);
+          alert("⚠️ Licencia expirada o bloqueada");
+          window.location.href = '/ArcAuctions/';
+          resolve(null);
+        }
         resolve(user);
       }
     });
