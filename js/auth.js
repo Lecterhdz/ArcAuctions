@@ -93,21 +93,39 @@ async function ensureUserProfile(user) {
   }
 }
 
-// Obtener info de licencia del usuario
+// Agregar esta función en js/auth.js
 export async function getUserLicense(user) {
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-  
-  if (!userSnap.exists()) return null;
-  
-  const data = userSnap.data();
-  return {
-    type: data.licenseType || 'demo',
-    status: data.licenseStatus || 'active',
-    expiry: data.licenseExpiry?.toDate?.() || data.licenseExpiry,
-    maxBids: LICENSE_CONFIG[data.role || 'demo']?.maxBids || 3,
-    canCreateAuctions: data.role === 'admin'
-  };
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      return { type: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false };
+    }
+    
+    const data = userSnap.data();
+    const LICENSE_CONFIG = {
+      demo: { maxBids: 3, canCreateAuctions: false },
+      pro: { maxBids: Infinity, canCreateAuctions: false },
+      admin: { maxBids: Infinity, canCreateAuctions: true }
+    };
+    
+    return {
+      type: data.role || 'demo',
+      status: data.licenseStatus || 'active',
+      expiry: data.licenseExpiry?.toDate?.() || data.licenseExpiry,
+      maxBids: LICENSE_CONFIG[data.role || 'demo']?.maxBids || 3,
+      canCreateAuctions: LICENSE_CONFIG[data.role || 'demo']?.canCreateAuctions || false
+    };
+  } catch (error) {
+    console.error("Error getting user license:", error);
+    return { type: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false };
+  }
+}
+
+export async function canCreateAuctions(user) {
+  const license = await getUserLicense(user);
+  return license.canCreateAuctions === true;
 }
 
 // Activar licencia PRO (para admin, o por pago)
