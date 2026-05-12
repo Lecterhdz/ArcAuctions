@@ -233,17 +233,19 @@
     </div>
   </main>
 
-  <button id="theme-fab" class="theme-fab">🌓<span class="fab-tooltip">JARVIS / ULTRON</span></button>
-  <!-- Botones de administración de subastas -->
-  <button id="add-auction-fab" class="admin-fab add-fab" title="Agregar nueva subasta">
-    <span>➕</span>
-    <span class="fab-tooltip">Nueva Subasta</span>
-  </button>
+  <!-- Botones flotantes agrupados -->
+  <div class="fab-group">
+    <button id="add-auction-fab" class="admin-fab add-fab" title="Agregar nueva subasta">
+      <span>➕</span>
+    </button>
+    <button id="edit-auction-fab" class="admin-fab edit-fab" title="Modificar subasta" style="display: none;">
+      <span>✏️</span>
+    </button>
+    <button id="theme-fab" class="theme-fab" title="JARVIS / ULTRON">
+      <span>🌓</span>
+    </button>
+  </div>
   
-  <button id="edit-auction-fab" class="admin-fab edit-fab" title="Modificar subasta existente" style="display: none;">
-    <span>✏️</span>
-    <span class="fab-tooltip">Editar Subasta</span>
-  </button>
   <script type="module">
     import { checkAuth, logout, getCurrentUser } from '/ArcAuctions/js/auth.js';
     import { loadAuctions, placeBid, listenActiveAuctionsCount, addAuction, updateAuction, deleteAuction, getAllAuctions } from '/ArcAuctions/js/auction.js';
