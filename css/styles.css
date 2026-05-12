@@ -400,3 +400,54 @@ body.theme-ultron .plan-badge {
     margin-top: 20px;
   }
 }
+/* Toasts mejorados */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: var(--card-bg);
+  padding: 12px 20px;
+  border-radius: 30px;
+  border-left: 4px solid var(--accent);
+  z-index: 1003;
+  animation: slideInToast 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.toast-success { border-left-color: #00C853; }
+.toast-error { border-left-color: #E63946; }
+.toast-warning { border-left-color: #FF9800; }
+
+@keyframes slideInToast {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Badge de vendedor */
+.seller-badge {
+  font-size: 10px;
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 20px;
+  opacity: 0.8;
+}
+
+/* Timer en rojo cuando expira */
+.auction-timer {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Efecto de cuenta regresiva */
+@keyframes pulseTimer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.timer-warning {
+  animation: pulseTimer 1s infinite;
+  color: #FF6600 !important;
+}
