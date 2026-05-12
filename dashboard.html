@@ -363,8 +363,9 @@
       <div class="card-rectangular">
         <p><strong>Email:</strong> <span id="profile-email">-</span></p>
         <p><strong>Plan:</strong> <span id="profile-plan">-</span></p>
+        <p><strong>Licencia expira:</strong> <span id="license-expiry">-</span></p>
         <p><strong>Pujas restantes:</strong> <span id="bids-remaining">-</span></p>
-        <button id="upgrade-pro" class="btn-rounded" style="margin-top: 15px;">🚀 Upgrade a PRO (24h demo)</button>
+        <button id="upgrade-pro" class="btn-rounded">🚀 Renovar/Upgrade a PRO</button>
       </div>
     </div>
 
@@ -621,7 +622,11 @@
         await loadUserProfile(user);
       };
     }
-    
+    // Mostrar fecha de expiración
+    const license = await getUserLicense(user);
+    if (license && license.expiry) {
+      document.getElementById('license-expiry').textContent = license.expiry.toLocaleDateString();
+    }    
     init();
   </script>
 </body>
