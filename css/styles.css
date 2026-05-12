@@ -1,33 +1,33 @@
 /* ===== JARVIS - Iron Man Arc Reactor Style ===== */
-:root[data-theme="jarvis"] {
-  --bg: linear-gradient(135deg, #E8E9F3 0%, #C5CBE3 100%);
-  --card-bg: rgba(255, 255, 255, 0.95);
+body.theme-jarvis {
+  --bg: #E8E9F3;
+  --bg-gradient: linear-gradient(135deg, #E8E9F3 0%, #C5CBE3 100%);
+  --card-bg: #FFFFFF;
   --text: #1A1A2E;
-  --text-glow: #0057B3;
+  --text-secondary: #4A4A6A;
   --accent: #0057B3;
   --accent-glow: #0088FF;
   --border: #FFD700;
-  --border-glow: rgba(255, 215, 0, 0.5);
   --danger: #E63946;
-  --menu-bg: rgba(240, 242, 245, 0.95);
+  --menu-bg: #F0F2F5;
   --input-bg: #FFFFFF;
-  --shadow: 0 8px 32px rgba(0, 87, 179, 0.2);
+  --shadow: rgba(0, 87, 179, 0.2);
 }
 
 /* ===== ULTRON - Dark Villain Style ===== */
-:root[data-theme="ultron"] {
-  --bg: linear-gradient(135deg, #0A0A0A 0%, #1A0000 50%, #0A0A0A 100%);
-  --card-bg: rgba(20, 0, 0, 0.95);
-  --text: #FF4444;
-  --text-glow: #FF0000;
+body.theme-ultron {
+  --bg: #0A0E17;
+  --bg-gradient: linear-gradient(135deg, #0A0A0A 0%, #1A0000 50%, #0A0A0A 100%);
+  --card-bg: #1A1E2F;
+  --text: #FFFFFF;
+  --text-secondary: #FF8888;
   --accent: #E63946;
   --accent-glow: #FF0000;
   --border: #8B0000;
-  --border-glow: rgba(255, 0, 0, 0.5);
   --danger: #FF0000;
-  --menu-bg: rgba(10, 0, 0, 0.98);
-  --input-bg: #1A0000;
-  --shadow: 0 8px 32px rgba(255, 0, 0, 0.3);
+  --menu-bg: #11151F;
+  --input-bg: #2A2E3F;
+  --shadow: rgba(255, 0, 0, 0.3);
 }
 
 * {
@@ -38,15 +38,20 @@
 
 body {
   font-family: 'Segoe UI', 'Roboto', monospace;
-  background: var(--bg);
+  background: var(--bg-gradient);
   color: var(--text);
   padding: 20px;
   min-height: 100vh;
   transition: all 0.3s ease;
 }
 
-/* === EFECTO REACTOR ARC (JARVIS) === */
-[data-theme="jarvis"] .reactor-ring {
+/* ===== TEXTOS GLOBALES ===== */
+h1, h2, h3, h4, p, span, li, a, label, div, .subtitle, .hint, .version {
+  color: var(--text);
+}
+
+/* ===== EFECTO REACTOR ARC (JARVIS) ===== */
+body.theme-jarvis .reactor-ring {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -57,11 +62,11 @@ body {
   background: radial-gradient(circle, rgba(0,87,179,0.1) 0%, rgba(0,87,179,0) 70%);
   pointer-events: none;
   z-index: -1;
-  animation: pulse 4s ease-in-out infinite;
+  animation: pulseJarvis 4s ease-in-out infinite;
 }
 
-/* === EFECTO OJO DE ULTRON === */
-[data-theme="ultron"] .reactor-ring {
+/* ===== EFECTO OJO DE ULTRON ===== */
+body.theme-ultron .reactor-ring {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -72,39 +77,41 @@ body {
   background: radial-gradient(circle, rgba(255,0,0,0.15) 0%, rgba(255,0,0,0) 70%);
   pointer-events: none;
   z-index: -1;
-  animation: ultronPulse 1.5s ease-in-out infinite;
+  animation: pulseUltron 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes pulseJarvis {
   0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
   50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
 }
 
-@keyframes ultronPulse {
+@keyframes pulseUltron {
   0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); filter: blur(0px); }
   50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.15); filter: blur(5px); }
 }
 
-/* === TARJETAS JARVIS === */
-[data-theme="jarvis"] .card-rectangular {
+/* ===== TARJETAS ===== */
+.card-rectangular {
   background: var(--card-bg);
-  border-left: 5px solid var(--border);
-  box-shadow: var(--shadow);
   border-radius: 20px;
-  backdrop-filter: blur(5px);
+  padding: 18px;
+  margin: 15px 0;
+  border-left: 5px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
 }
 
-/* === TARJETAS ULTRON (EFECTO GRIETA) === */
-[data-theme="ultron"] .card-rectangular {
-  background: var(--card-bg);
-  border-left: 5px solid var(--border);
-  box-shadow: var(--shadow);
-  border-radius: 20px;
+.card-rectangular:hover {
+  transform: translateY(-3px);
+}
+
+/* Efecto grieta para ULTRON */
+body.theme-ultron .card-rectangular {
   position: relative;
   overflow: hidden;
 }
 
-[data-theme="ultron"] .card-rectangular::before {
+body.theme-ultron .card-rectangular::before {
   content: '';
   position: absolute;
   top: -50%;
@@ -121,7 +128,27 @@ body {
   pointer-events: none;
 }
 
-/* === BOTÓN MENÚ HAMBURGUESA === */
+.card-circle {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  margin: 10px;
+}
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* ===== BOTÓN MENÚ HAMBURGUESA ===== */
 .menu-hamburger {
   position: fixed;
   top: 20px;
@@ -129,30 +156,24 @@ body {
   width: 41px;
   height: 41px;
   border-radius: 50%;
+  background: var(--accent);
+  color: white;
   border: none;
+  font-size: 20px;
   cursor: pointer;
   z-index: 1001;
+  box-shadow: 0 0 12px var(--accent-glow);
   transition: 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
 }
 
-[data-theme="jarvis"] .menu-hamburger {
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 0 15px var(--accent-glow);
+.menu-hamburger:hover {
+  transform: scale(1.05);
 }
 
-[data-theme="ultron"] .menu-hamburger {
-  background: var(--accent);
-  color: black;
-  box-shadow: 0 0 15px var(--accent-glow);
-  border: 1px solid #FF4444;
-}
-
-/* === BOTÓN TEMA FAB === */
+/* ===== BOTÓN TEMA FAB ===== */
 .theme-fab {
   position: fixed;
   bottom: 30px;
@@ -160,50 +181,35 @@ body {
   width: 41px;
   height: 41px;
   border-radius: 50%;
+  background: var(--accent);
+  color: white;
   border: none;
+  font-size: 20px;
   cursor: pointer;
   z-index: 1001;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-}
-
-[data-theme="jarvis"] .theme-fab {
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-[data-theme="ultron"] .theme-fab {
-  background: #1A0000;
-  color: #FF4444;
-  box-shadow: 0 0 15px #FF0000;
-  border: 1px solid #FF4444;
 }
 
 .theme-fab:hover {
   transform: scale(1.1);
 }
 
-[data-theme="jarvis"] .theme-fab:hover {
-  box-shadow: 0 0 20px var(--accent-glow);
+body.theme-ultron .theme-fab {
+  background: #8B0000;
+  box-shadow: 0 0 15px #FF0000;
 }
 
-[data-theme="ultron"] .theme-fab:hover {
-  box-shadow: 0 0 20px #FF0000;
-  background: #FF0000;
-  color: black;
-}
-
-/* === MENÚ LATERAL === */
+/* ===== MENÚ LATERAL ===== */
 .side-menu {
   position: fixed;
   top: 0;
   left: -300px;
   width: 280px;
   height: 100%;
+  background: var(--menu-bg);
   backdrop-filter: blur(20px);
   box-shadow: 4px 0 20px rgba(0,0,0,0.3);
   z-index: 1000;
@@ -212,17 +218,12 @@ body {
   overflow-y: auto;
 }
 
-[data-theme="jarvis"] .side-menu {
-  background: var(--menu-bg);
-}
-
-[data-theme="ultron"] .side-menu {
-  background: var(--menu-bg);
-  border-right: 1px solid #8B0000;
-}
-
 .side-menu.open {
   left: 0;
+}
+
+body.theme-ultron .side-menu {
+  border-right: 1px solid #8B0000;
 }
 
 .menu-header {
@@ -237,25 +238,10 @@ body {
   letter-spacing: 2px;
 }
 
-[data-theme="jarvis"] .menu-header h3 {
-  color: var(--accent);
-  text-shadow: 0 0 5px var(--accent-glow);
-}
-
-[data-theme="ultron"] .menu-header h3 {
-  color: #FF4444;
-  text-shadow: 0 0 5px #FF0000;
-  font-family: monospace;
-}
-
 .version {
   font-size: 10px;
   opacity: 0.7;
   margin-top: 5px;
-}
-
-[data-theme="ultron"] .version {
-  color: #FF8888;
 }
 
 .menu-item {
@@ -264,6 +250,7 @@ body {
   margin: 10px 0;
   padding: 10px;
   background: transparent;
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 40px;
   cursor: pointer;
@@ -272,25 +259,9 @@ body {
   transition: 0.2s;
 }
 
-[data-theme="jarvis"] .menu-item {
-  color: var(--text);
-}
-
-[data-theme="ultron"] .menu-item {
-  color: #FF4444;
-}
-
 .menu-item:hover {
   background: var(--accent);
-}
-
-[data-theme="jarvis"] .menu-item:hover {
   color: white;
-}
-
-[data-theme="ultron"] .menu-item:hover {
-  color: black;
-  background: #FF0000;
 }
 
 .logout {
@@ -298,11 +269,7 @@ body {
   border-color: var(--danger);
 }
 
-[data-theme="ultron"] .logout {
-  color: #FF0000;
-}
-
-/* === BADGE DE USUARIO === */
+/* ===== BADGE DE USUARIO ===== */
 .user-badge {
   display: flex;
   align-items: center;
@@ -315,11 +282,6 @@ body {
   width: fit-content;
   float: right;
   clear: both;
-  backdrop-filter: blur(5px);
-}
-
-[data-theme="ultron"] .user-badge {
-  border: 1px solid #FF4444;
 }
 
 .avatar-circle {
@@ -331,56 +293,25 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 18px;
-}
-
-[data-theme="jarvis"] .avatar-circle {
   color: white;
 }
 
-[data-theme="ultron"] .avatar-circle {
-  color: black;
-  background: #FF0000;
-}
-
 .plan-badge {
+  background: var(--border);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: bold;
 }
 
-[data-theme="jarvis"] .plan-badge {
-  background: var(--border);
-  color: var(--text);
+body.theme-ultron .plan-badge {
+  color: #0A0E17;
 }
 
-[data-theme="ultron"] .plan-badge {
-  background: #8B0000;
-  color: #FF8888;
-}
-
-/* === CARDS === */
-.card-rectangular {
-  border-radius: 20px;
-  padding: 18px;
-  margin: 15px 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-
-.card-rectangular:hover {
-  transform: translateY(-3px);
-}
-
-.cards-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-
-/* === BOTONES === */
+/* ===== BOTONES ===== */
 .btn-rounded {
+  background: var(--accent);
+  color: white;
   border: none;
   padding: 8px 20px;
   border-radius: 40px;
@@ -390,28 +321,37 @@ body {
   font-size: 14px;
 }
 
-[data-theme="jarvis"] .btn-rounded {
-  background: var(--accent);
-  color: white;
-}
-
-[data-theme="ultron"] .btn-rounded {
-  background: #8B0000;
-  color: #FF4444;
-  border: 1px solid #FF4444;
-}
-
-[data-theme="ultron"] .btn-rounded:hover {
-  background: #FF0000;
-  color: black;
-}
-
 .btn-rounded:hover {
   opacity: 0.9;
   transform: scale(1.02);
 }
 
-/* === LOGIN === */
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 8px 18px;
+  border-radius: 40px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.btn-outline:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* ===== VISTAS ===== */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* ===== LOGIN ===== */
 .login-container {
   max-width: 400px;
   margin: 100px auto;
@@ -419,16 +359,7 @@ body {
   padding: 30px;
   background: var(--card-bg);
   border-radius: 30px;
-  backdrop-filter: blur(10px);
-}
-
-[data-theme="jarvis"] .login-container {
-  box-shadow: 0 0 30px rgba(0,87,179,0.3);
-}
-
-[data-theme="ultron"] .login-container {
-  box-shadow: 0 0 30px rgba(255,0,0,0.3);
-  border: 1px solid #8B0000;
+  box-shadow: 0 0 30px var(--shadow);
 }
 
 #login-form input {
@@ -441,7 +372,17 @@ body {
   color: var(--text);
 }
 
-/* === RESPONSIVE === */
+#login-form input::placeholder {
+  color: var(--text-secondary);
+}
+
+.hint {
+  font-size: 12px;
+  margin-top: 20px;
+  opacity: 0.6;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .cards-grid {
     flex-direction: column;
