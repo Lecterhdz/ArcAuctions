@@ -16,25 +16,29 @@ export async function initAuth() {
   const form = document.getElementById('login-form');
   const demoBtn = document.getElementById('demo-btn');
   
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    const user = await loginUser(email, pass);
-    if (user) window.location.href = './dashboard.html';
-  };
+  if (form) {
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      const user = await loginUser(email, pass);
+      if (user) window.location.href = '/ArcAuctions/dashboard.html';
+    };
+  }
   
-  demoBtn.onclick = async () => {
-    const demoUser = await loginUser("demo@stark.com", "123456");
-    if (demoUser) window.location.href = './dashboard.html';
-  };
+  if (demoBtn) {
+    demoBtn.onclick = async () => {
+      const demoUser = await loginUser("demo@arcauctions.com", "123456");
+      if (demoUser) window.location.href = '/ArcAuctions/dashboard.html';
+    };
+  }
 }
 
 export async function checkAuth() {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = './';
+        window.location.href = '/ArcAuctions/';
         resolve(null);
       }
       resolve(user);
@@ -44,5 +48,5 @@ export async function checkAuth() {
 
 export async function logout() {
   await signOut(auth);
-  window.location.href = './';
+  window.location.href = '/ArcAuctions/';
 }
