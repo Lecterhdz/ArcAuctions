@@ -415,7 +415,7 @@
   </div>
 
   <script type="module">
-    import { checkAuth, logout, getCurrentUser } from '/ArcAuctions/js/auth.js';
+    import { checkAuth, logout, getCurrentUser, getUserLicense, canCreateAuctions } from '/ArcAuctions/js/auth.js';
     import { loadAuctions, placeBid, listenActiveAuctionsCount, addAuction, updateAuction, deleteAuction, getAllAuctions } from '/ArcAuctions/js/auction.js';
     import { initTheme, toggleTheme, getCurrentTheme } from '/ArcAuctions/js/theme.js';
     import { upgradeToPro, loadUserProfile, loadBidHistory, updateStatsCards } from '/ArcAuctions/js/app.js';
