@@ -8,26 +8,58 @@ export async function loadUserProfile(user) {
     
     // Si no existe perfil, crearlo
     if (!userSnap.exists()) {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7); // 7 días de demo
+      
       await setDoc(userRef, {
         email: user.email,
-        plan: 'demo',
+        role: 'demo',
+        licenseType: 'demo',
+        licenseStatus: 'active',
+        licenseExpiry: expiryDate,
         bidsToday: 0,
+        totalBids: 0,
         createdAt: new Date()
       });
       userSnap = await getDoc(userRef);
     }
     
     const userData = userSnap.data();
-    const plan = userData.plan || 'demo';
+    const role = userData.role || 'demo';
+    const licenseType = userData.licenseType || 'demo';
+    const licenseExpiry = userData.licenseExpiry?.toDate?.() || userData.licenseExpiry;
     const bidsToday = userData.bidsToday || 0;
+    
+    // Determinar texto a mostrar según rol
+    let displayPlan = '';
+    let badgeColor = '';
+    
+    switch (role) {
+      case 'admin':
+        displayPlan = '👑 ADMIN';
+        badgeColor = '#9C27B0';
+        break;
+      case 'pro':
+        displayPlan = '⭐ PRO';
+        badgeColor = '#00C853';
+        break;
+      default:
+        displayPlan = '🎮 DEMO';
+        badgeColor = '#FFD700';
+    }
+    
+    // Calcular pujas restantes
+    const remainingBids = role === 'demo' ? Math.max(0, 3 - bidsToday) : '∞';
     
     // Actualizar UI
     const elements = {
       'user-email': user.email,
       'profile-email': user.email,
-      'profile-plan': plan.toUpperCase(),
-      'plan-badge': plan.toUpperCase(),
-      'bids-remaining': plan === 'demo' ? (3 - bidsToday) : '∞ Ilimitado'
+      'profile-plan': displayPlan,
+      'plan-badge': displayPlan,
+      'bids-remaining': role === 'demo' ? `${remainingBids} / 3 pujas` : 'Ilimitadas',
+      'bids-remaining-stats': remainingBids,
+      'license-expiry': licenseExpiry ? licenseExpiry.toLocaleDateString() : 'Ilimitada'
     };
     
     for (const [id, value] of Object.entries(elements)) {
@@ -35,45 +67,62 @@ export async function loadUserProfile(user) {
       if (el) el.innerText = value;
     }
     
-    // Cambiar color del badge según plan
+    // Cambiar color del badge según rol
     const badge = document.getElementById('plan-badge');
     if (badge) {
-      badge.style.background = plan === 'pro' ? '#00C853' : '#FFD700';
-      badge.style.color = plan === 'pro' ? 'white' : '#1A1A2E';
+      badge.style.background = badgeColor;
+      badge.style.color = role === 'demo' ? '#1A1A2E' : 'white';
     }
     
-    // Actualizar estadísticas de pujas restantes en el perfil
-    const bidsRemainingProfile = document.getElementById('bids-remaining');
-    if (bidsRemainingProfile) {
-      bidsRemainingProfile.innerText = plan === 'demo' ? (3 - bidsToday) : '∞ Ilimitado';
+    // Ocultar/mostrar botón de upgrade según rol
+    const upgradeBtn = document.getElementById('upgrade-pro');
+    if (upgradeBtn) {
+      if (role === 'admin') {
+        upgradeBtn.style.display = 'none';
+      } else if (role === 'pro') {
+        upgradeBtn.textContent = '🔄 Renovar PRO (30 días)';
+      } else {
+        upgradeBtn.textContent = '🚀 Upgrade a PRO (30 días)';
+      }
     }
     
-    // Actualizar las tarjetas de estadísticas
-    const bidsRemainingStats = document.getElementById('bids-remaining-stats');
-    if (bidsRemainingStats) {
-      bidsRemainingStats.innerText = plan === 'demo' ? (3 - bidsToday) : '∞';
-    }
-    
-    return { plan, bidsToday };
+    return { role, bidsToday, remainingBids, licenseExpiry };
   } catch (error) {
     console.error("Error loading profile:", error);
-    return { plan: 'demo', bidsToday: 0 };
+    return { role: 'demo', bidsToday: 0, remainingBids: 3 };
   }
 }
 
 export async function upgradeToPro(user) {
   try {
     const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    const currentRole = userSnap.data()?.role || 'demo';
+    
+    // Si ya es admin, no puede upgradear
+    if (currentRole === 'admin') {
+      alert("👑 Los usuarios ADMIN no necesitan upgrade.");
+      return false;
+    }
+    
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30); // 30 días
+    
     await updateDoc(userRef, {
-      plan: 'pro',
-      proExpires: new Date(Date.now() + 86400000),
+      role: 'pro',
+      licenseType: 'pro',
+      licenseStatus: 'active',
+      licenseExpiry: expiryDate,
       upgradedAt: new Date()
     });
-    alert("✅ Modo PRO activado por 24 horas. ¡Pujas ilimitadas!");
+    
+    alert("✅ Modo PRO activado por 30 días. ¡Pujas ilimitadas!");
     location.reload();
+    return true;
   } catch (error) {
     console.error("Error upgrading:", error);
     alert("❌ Error al activar PRO. Intenta de nuevo.");
+    return false;
   }
 }
 
@@ -145,9 +194,6 @@ export async function loadBidHistory(user) {
               </div>
             `;
           });
-          
-          // Mostrar advertencia suave
-          container.innerHTML += '<div class="card-rectangular" style="border-left-color: #FF9800; font-size: 12px;">⚠️ Sugerencia: Crea un índice en Firebase para mejor rendimiento</div>';
         }
       } catch (fallbackError) {
         console.error("Fallback error:", fallbackError);
@@ -167,13 +213,13 @@ export async function updateStatsCards(user) {
     const bidsSnap = await getDocs(bidsQuery);
     const totalBids = bidsSnap.size;
     
-    // Obtener plan y pujas restantes
+    // Obtener rol y pujas restantes
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
-    const userData = userSnap.data() || { plan: 'demo', bidsToday: 0 };
-    const plan = userData.plan;
+    const userData = userSnap.data() || { role: 'demo', bidsToday: 0 };
+    const role = userData.role || 'demo';
     const bidsToday = userData.bidsToday || 0;
-    const remainingBids = plan === 'demo' ? Math.max(0, 3 - bidsToday) : '∞';
+    const remainingBids = role === 'demo' ? Math.max(0, 3 - bidsToday) : '∞';
     
     // Contar subastas activas (no expiradas)
     const auctionsSnap = await getDocs(collection(db, "auctions"));
