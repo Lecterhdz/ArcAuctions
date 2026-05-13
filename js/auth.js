@@ -60,7 +60,7 @@ export async function checkLicenseStatus(user) {
   
   if (licenseStatus === 'blocked') return false;
   
-  if (licenseExpiry && licenseExpiry < new Date()) {
+  if (licenseExpiry && licenseExpiry < new Date() && userData.role !== 'admin') {
     await updateDoc(userRef, { licenseStatus: 'expired' });
     return false;
   }
@@ -98,7 +98,7 @@ export async function getUserLicense(user) {
     const userSnap = await getDoc(userRef);
     
     if (!userSnap.exists()) {
-      return { type: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false };
+      return { type: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false, role: 'demo' };
     }
     
     const data = userSnap.data();
@@ -112,6 +112,7 @@ export async function getUserLicense(user) {
     
     return {
       type: role,
+      role: role,
       status: data.licenseStatus || 'active',
       expiry: data.licenseExpiry?.toDate?.() || data.licenseExpiry,
       maxBids: roleConfig[role]?.maxBids || 3,
@@ -119,14 +120,43 @@ export async function getUserLicense(user) {
     };
   } catch (error) {
     console.error("Error getting user license:", error);
-    return { type: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false };
+    return { type: 'demo', role: 'demo', status: 'active', expiry: null, maxBids: 3, canCreateAuctions: false };
   }
 }
 
-// Verificar si el usuario puede crear subastas (SÓLO UNA VEZ DECLARADA)
+// Obtener el rol del usuario
+export async function getUserRole(user) {
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      return 'demo';
+    }
+    
+    return userSnap.data().role || 'demo';
+  } catch (error) {
+    console.error("Error getting user role:", error);
+    return 'demo';
+  }
+}
+
+// Verificar si el usuario puede crear subastas
 export async function canCreateAuctions(user) {
-  const license = await getUserLicense(user);
-  return license.canCreateAuctions === true;
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      return false;
+    }
+    
+    const role = userSnap.data().role || 'demo';
+    return role === 'admin';
+  } catch (error) {
+    console.error("Error checking admin permissions:", error);
+    return false;
+  }
 }
 
 // Activar licencia PRO
@@ -151,7 +181,7 @@ export async function activateProLicense(user, durationDays = 30) {
   }
 }
 
-// Bloquear usuario
+// Bloquear usuario (solo admin)
 export async function blockUser(userId, reason = '') {
   try {
     const userRef = doc(db, "users", userId);
@@ -167,6 +197,7 @@ export async function blockUser(userId, reason = '') {
   }
 }
 
+// Inicializar autenticación (login)
 export async function initAuth() {
   const form = document.getElementById('login-form');
   const demoBtn = document.getElementById('demo-btn');
@@ -189,6 +220,7 @@ export async function initAuth() {
   }
 }
 
+// Verificar autenticación (para dashboard)
 export async function checkAuth() {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
@@ -209,11 +241,13 @@ export async function checkAuth() {
   });
 }
 
+// Cerrar sesión
 export async function logout() {
   await signOut(auth);
   window.location.href = '/ArcAuctions/';
 }
 
+// Obtener usuario actual
 export function getCurrentUser() {
   return auth.currentUser;
 }
