@@ -365,7 +365,7 @@
         <p><strong>Plan:</strong> <span id="profile-plan">-</span></p>
         <p><strong>Licencia expira:</strong> <span id="license-expiry">-</span></p>
         <p><strong>Pujas restantes:</strong> <span id="bids-remaining">-</span></p>
-        <button id="upgrade-pro" class="btn-rounded">🚀 Renovar/Upgrade a PRO</button>
+        <button id="upgrade-pro" class="btn-rounded">🚀 Upgrade a PRO</button>
       </div>
     </div>
 
@@ -415,10 +415,10 @@
   </div>
 
   <script type="module">
-    import { checkAuth, logout, getCurrentUser, getUserLicense, canCreateAuctions } from '/ArcAuctions/js/auth.js';
+    import { checkAuth, logout, getUserLicense, canCreateAuctions, getUserRole } from '/ArcAuctions/js/auth.js';
     import { loadAuctions, placeBid, listenActiveAuctionsCount, addAuction, updateAuction, deleteAuction, getAllAuctions } from '/ArcAuctions/js/auction.js';
-    import { initTheme, toggleTheme, getCurrentTheme } from '/ArcAuctions/js/theme.js';
-    import { upgradeToPro, loadUserProfile, loadBidHistory, updateStatsCards } from '/ArcAuctions/js/app.js';
+    import { initTheme, toggleTheme } from '/ArcAuctions/js/theme.js';
+    import { upgradeToPro, loadUserProfile, loadBidHistory } from '/ArcAuctions/js/app.js';
     import { db } from '/ArcAuctions/js/firebase-config.js';
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -437,115 +437,130 @@
     let allAuctionsList = [];
     
     // Abrir modal para agregar
-    document.getElementById('add-auction-fab').onclick = () => {
-      currentEditAuctionId = null;
-      document.getElementById('modal-title').innerHTML = '➕ Nueva Subasta';
-      document.getElementById('select-auction-section').style.display = 'none';
-      document.getElementById('modal-delete-btn').style.display = 'none';
-      document.getElementById('auction-title').value = '';
-      document.getElementById('auction-price').value = '100';
-      document.getElementById('auction-seller').value = '';
-      const defaultDate = new Date();
-      defaultDate.setHours(defaultDate.getHours() + 1);
-      document.getElementById('auction-endtime').value = defaultDate.toISOString().slice(0, 16);
-      document.getElementById('auction-modal').classList.add('active');
-    };
+    const addFab = document.getElementById('add-auction-fab');
+    if (addFab) {
+      addFab.onclick = () => {
+        currentEditAuctionId = null;
+        document.getElementById('modal-title').innerHTML = '➕ Nueva Subasta';
+        document.getElementById('select-auction-section').style.display = 'none';
+        document.getElementById('modal-delete-btn').style.display = 'none';
+        document.getElementById('auction-title').value = '';
+        document.getElementById('auction-price').value = '100';
+        document.getElementById('auction-seller').value = '';
+        const defaultDate = new Date();
+        defaultDate.setHours(defaultDate.getHours() + 1);
+        document.getElementById('auction-endtime').value = defaultDate.toISOString().slice(0, 16);
+        document.getElementById('auction-modal').classList.add('active');
+      };
+    }
     
     // Abrir modal para editar
-    document.getElementById('edit-auction-fab').onclick = async () => {
-      try {
-        allAuctionsList = await getAllAuctions();
-        const listContainer = document.getElementById('auction-select-list');
+    const editFab = document.getElementById('edit-auction-fab');
+    if (editFab) {
+      editFab.onclick = async () => {
+        try {
+          allAuctionsList = await getAllAuctions();
+          const listContainer = document.getElementById('auction-select-list');
+          
+          if (allAuctionsList.length === 0) {
+            showToast('📭 No hay subastas para editar', 'warning');
+            return;
+          }
+          
+          listContainer.innerHTML = allAuctionsList.map(auction => {
+            let endTime;
+            try {
+              endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+            } catch(e) {
+              endTime = new Date(auction.endTime);
+            }
+            return `
+              <div class="auction-select-item" data-id="${auction.id}">
+                <strong>${auction.title}</strong><br>
+                <small>💰 $${auction.currentPrice} | ⏳ Termina: ${endTime.toLocaleString()}</small>
+              </div>
+            `;
+          }).join('');
+          
+          document.querySelectorAll('.auction-select-item').forEach(el => {
+            el.onclick = () => {
+              document.querySelectorAll('.auction-select-item').forEach(i => i.classList.remove('selected'));
+              el.classList.add('selected');
+              const auction = allAuctionsList.find(a => a.id === el.dataset.id);
+              if (auction) {
+                currentEditAuctionId = auction.id;
+                document.getElementById('auction-title').value = auction.title || '';
+                document.getElementById('auction-price').value = auction.currentPrice || 100;
+                document.getElementById('auction-seller').value = auction.seller || '';
+                const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
+                document.getElementById('auction-endtime').value = endTime.toISOString().slice(0, 16);
+              }
+            };
+          });
+          
+          document.getElementById('modal-title').innerHTML = '✏️ Editar Subasta';
+          document.getElementById('select-auction-section').style.display = 'block';
+          document.getElementById('modal-delete-btn').style.display = 'block';
+          document.getElementById('auction-modal').classList.add('active');
+        } catch (error) {
+          console.error("Error loading auctions:", error);
+          showToast('❌ Error cargando subastas', 'error');
+        }
+      };
+    }
+    
+    // Guardar subasta
+    const saveBtn = document.getElementById('modal-save-btn');
+    if (saveBtn) {
+      saveBtn.onclick = async () => {
+        const title = document.getElementById('auction-title').value;
+        const price = parseFloat(document.getElementById('auction-price').value);
+        const endTime = new Date(document.getElementById('auction-endtime').value);
+        const seller = document.getElementById('auction-seller').value || 'Stark Industries';
         
-        if (allAuctionsList.length === 0) {
-          showToast('📭 No hay subastas para editar', 'warning');
+        if (!title || isNaN(price) || !endTime) {
+          showToast('⚠️ Completa todos los campos', 'warning');
           return;
         }
         
-        listContainer.innerHTML = allAuctionsList.map(auction => {
-          let endTime;
-          try {
-            endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
-          } catch(e) {
-            endTime = new Date(auction.endTime);
-          }
-          return `
-            <div class="auction-select-item" data-id="${auction.id}">
-              <strong>${auction.title}</strong><br>
-              <small>💰 $${auction.currentPrice} | ⏳ Termina: ${endTime.toLocaleString()}</small>
-            </div>
-          `;
-        }).join('');
+        if (endTime < new Date()) {
+          showToast('⚠️ La fecha debe ser futura', 'warning');
+          return;
+        }
         
-        document.querySelectorAll('.auction-select-item').forEach(el => {
-          el.onclick = () => {
-            document.querySelectorAll('.auction-select-item').forEach(i => i.classList.remove('selected'));
-            el.classList.add('selected');
-            const auction = allAuctionsList.find(a => a.id === el.dataset.id);
-            if (auction) {
-              currentEditAuctionId = auction.id;
-              document.getElementById('auction-title').value = auction.title || '';
-              document.getElementById('auction-price').value = auction.currentPrice || 100;
-              document.getElementById('auction-seller').value = auction.seller || '';
-              const endTime = auction.endTime?.toDate?.() || new Date(auction.endTime);
-              document.getElementById('auction-endtime').value = endTime.toISOString().slice(0, 16);
-            }
-          };
-        });
+        if (currentEditAuctionId) {
+          await updateAuction(currentEditAuctionId, { title, currentPrice: price, endTime, seller });
+          showToast('✏️ Subasta actualizada', 'success');
+        } else {
+          await addAuction({ title, currentPrice: price, endTime, seller });
+          showToast('✅ Subasta creada', 'success');
+        }
         
-        document.getElementById('modal-title').innerHTML = '✏️ Editar Subasta';
-        document.getElementById('select-auction-section').style.display = 'block';
-        document.getElementById('modal-delete-btn').style.display = 'block';
-        document.getElementById('auction-modal').classList.add('active');
-      } catch (error) {
-        console.error("Error loading auctions:", error);
-        showToast('❌ Error cargando subastas', 'error');
-      }
-    };
-    
-    // Guardar subasta
-    document.getElementById('modal-save-btn').onclick = async () => {
-      const title = document.getElementById('auction-title').value;
-      const price = parseFloat(document.getElementById('auction-price').value);
-      const endTime = new Date(document.getElementById('auction-endtime').value);
-      const seller = document.getElementById('auction-seller').value || 'Stark Industries';
-      
-      if (!title || isNaN(price) || !endTime) {
-        showToast('⚠️ Completa todos los campos', 'warning');
-        return;
-      }
-      
-      if (endTime < new Date()) {
-        showToast('⚠️ La fecha debe ser futura', 'warning');
-        return;
-      }
-      
-      if (currentEditAuctionId) {
-        await updateAuction(currentEditAuctionId, { title, currentPrice: price, endTime, seller });
-        showToast('✏️ Subasta actualizada', 'success');
-      } else {
-        await addAuction({ title, currentPrice: price, endTime, seller });
-        showToast('✅ Subasta creada', 'success');
-      }
-      
-      document.getElementById('auction-modal').classList.remove('active');
-      setTimeout(() => location.reload(), 500);
-    };
+        document.getElementById('auction-modal').classList.remove('active');
+        setTimeout(() => location.reload(), 500);
+      };
+    }
     
     // Eliminar subasta
-    document.getElementById('modal-delete-btn').onclick = async () => {
-      if (currentEditAuctionId) {
-        await deleteAuction(currentEditAuctionId);
-        document.getElementById('auction-modal').classList.remove('active');
-        showToast('🗑️ Subasta eliminada', 'success');
-        setTimeout(() => location.reload(), 500);
-      }
-    };
+    const deleteBtn = document.getElementById('modal-delete-btn');
+    if (deleteBtn) {
+      deleteBtn.onclick = async () => {
+        if (currentEditAuctionId) {
+          await deleteAuction(currentEditAuctionId);
+          document.getElementById('auction-modal').classList.remove('active');
+          showToast('🗑️ Subasta eliminada', 'success');
+          setTimeout(() => location.reload(), 500);
+        }
+      };
+    }
     
     // Cancelar
-    document.getElementById('modal-cancel-btn').onclick = () => {
-      document.getElementById('auction-modal').classList.remove('active');
-    };
+    const cancelBtn = document.getElementById('modal-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        document.getElementById('auction-modal').classList.remove('active');
+      };
+    }
     
     async function updateStats(user) {
       try {
@@ -565,9 +580,13 @@
           if (endTime > now) activeCount++;
         });
         
-        document.getElementById('total-bids').textContent = bidsSnap.size;
-        document.getElementById('active-auctions').textContent = activeCount;
-        document.getElementById('active-auctions-count').textContent = activeCount;
+        const totalBidsEl = document.getElementById('total-bids');
+        const activeAuctionsEl = document.getElementById('active-auctions');
+        const activeAuctionsCountEl = document.getElementById('active-auctions-count');
+        
+        if (totalBidsEl) totalBidsEl.textContent = bidsSnap.size;
+        if (activeAuctionsEl) activeAuctionsEl.textContent = activeCount;
+        if (activeAuctionsCountEl) activeAuctionsCountEl.textContent = activeCount;
         
         return { totalBids: bidsSnap.size, activeAuctions: activeCount };
       } catch (error) {
@@ -594,8 +613,10 @@
         if (activeStats) activeStats.textContent = count;
       });
       
-      document.getElementById('user-display').textContent = user.email.split('@')[0];
-      document.getElementById('user-email').textContent = user.email;
+      const userDisplay = document.getElementById('user-display');
+      const userEmail = document.getElementById('user-email');
+      if (userDisplay) userDisplay.textContent = user.email.split('@')[0];
+      if (userEmail) userEmail.textContent = user.email;
       
       // Mostrar fecha de expiración de licencia
       try {
@@ -611,11 +632,15 @@
       // Verificar si puede crear subastas (admin)
       try {
         const canCreate = await canCreateAuctions(user);
+        const addFabBtn = document.getElementById('add-auction-fab');
+        const editFabBtn = document.getElementById('edit-auction-fab');
+        
         if (!canCreate) {
-          const addFab = document.getElementById('add-auction-fab');
-          const editFab = document.getElementById('edit-auction-fab');
-          if (addFab) addFab.style.display = 'none';
-          if (editFab) editFab.style.display = 'none';
+          if (addFabBtn) addFabBtn.style.display = 'none';
+          if (editFabBtn) editFabBtn.style.display = 'none';
+        } else {
+          if (addFabBtn) addFabBtn.style.display = 'flex';
+          if (editFabBtn) editFabBtn.style.display = 'flex';
         }
       } catch (err) {
         console.error("Error checking permissions:", err);
@@ -623,19 +648,25 @@
       
       const menuBtn = document.getElementById('menu-btn');
       const sideMenu = document.getElementById('side-menu');
-      menuBtn.onclick = () => sideMenu.classList.toggle('open');
+      if (menuBtn) menuBtn.onclick = () => sideMenu.classList.toggle('open');
       
-      document.getElementById('theme-fab').onclick = () => { toggleTheme(); showToast('🎨 Tema cambiado'); };
-      document.getElementById('logout-btn').onclick = () => logout();
-      document.getElementById('upgrade-pro').onclick = async () => { await upgradeToPro(user); location.reload(); };
+      const themeFab = document.getElementById('theme-fab');
+      if (themeFab) themeFab.onclick = () => { toggleTheme(); showToast('🎨 Tema cambiado'); };
+      
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) logoutBtn.onclick = () => logout();
+      
+      const upgradeBtn = document.getElementById('upgrade-pro');
+      if (upgradeBtn) upgradeBtn.onclick = async () => { await upgradeToPro(user); location.reload(); };
       
       document.querySelectorAll('.menu-item[data-view]').forEach(btn => {
         btn.onclick = (e) => {
           const view = e.target.getAttribute('data-view');
           document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-          document.getElementById(`${view}-view`).classList.add('active');
+          const targetView = document.getElementById(`${view}-view`);
+          if (targetView) targetView.classList.add('active');
           if (view === 'history') loadBidHistory(user);
-          sideMenu.classList.remove('open');
+          if (sideMenu) sideMenu.classList.remove('open');
         };
       });
       
